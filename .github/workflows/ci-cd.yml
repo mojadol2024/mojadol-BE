@@ -33,8 +33,8 @@ jobs:
       - name: Build Container Image
         uses: docker/build-push-action@v5
         with:
-          context: ./Mojadol
-          file: ./Mojadol/Dockerfile
+          context: .
+          file: ./Dockerfile
           platforms: linux/amd64
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/mojadol-be:latest
@@ -54,6 +54,7 @@ jobs:
             docker rm -f mojadol-be
             docker run -d \
               --name mojadol-be \
+              --network mojadol_network \
               -p 3000:3000 \
               -e DB_MOJADOL_HOST=${{ secrets.DB_MOJADOL_HOST }} \
               -e DB_MOJADOL_USER=${{ secrets.DB_MOJADOL_USER }} \
