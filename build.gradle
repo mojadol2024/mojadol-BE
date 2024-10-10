@@ -43,11 +43,10 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
     // MySQL Connector
-    implementation 'com.mysql:mysql-connector-j:8.0.33'
+    implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.33'
 
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    implementation 'org.springframework.data:spring-data-redis'
 
 
     // Testing Dependencies
@@ -55,8 +54,7 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
 
     //Swagger
-    implementation 'io.springfox:springfox-swagger2:3.0.0'
-    implementation 'io.springfox:springfox-swagger-ui:3.0.0'
+    implementation 'org.springdoc:springdoc-openapi-ui:1.6.14'
 
     implementation 'org.apache.commons:commons-lang3:3.12.0'
 
