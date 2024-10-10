@@ -1,4 +1,4 @@
-package org.example.mojadol;
+package com.gnu.mojadol;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
