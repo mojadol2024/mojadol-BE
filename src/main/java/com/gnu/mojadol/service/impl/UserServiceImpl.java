@@ -6,6 +6,8 @@ import com.gnu.mojadol.entity.User;
 import com.gnu.mojadol.repository.UserRepository;
 import com.gnu.mojadol.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -20,6 +22,13 @@ public class UserServiceImpl implements UserService {
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
+
+    @Autowired
+    public PasswordEncoder passwordEncoder;
+
+    public User getUserByUserName(String userName) {
+        return userRepository.findByUserId(userName);
+    }
     @Override
     public UserResponseDto addUser(UserRequestDto dto) {
         System.out.println("UserServiceImpl addUser: " + dto);
@@ -32,22 +41,22 @@ public class UserServiceImpl implements UserService {
 
         User user = new User();
         user.setUserId(dto.getUserId());
-        user.setName(dto.getName());
+        user.setUserName(dto.getUserName());
         user.setPhoneNumber(dto.getPhoneNumber());
-        user.setAlertBoolean(1);
-        user.setAlertCount(0);
-        user.setRegiTime(dateString);
-        User savedUser = userRepository.save(user);
+        user.setRegiDate(dateString);
+        user.setNickname(dto.getNickName());
+        user.setUserPw(passwordEncoder.encode(dto.getUserPw()));
+        userRepository.save(user);
         // ResponseDto 생성 후 반환
         UserResponseDto response = new UserResponseDto();
         response.setUserId(user.getUserId());
-        response.setName(user.getName());
-        response.setAlertCount(0);
-        response.setAlertBoolean(1);
+        response.setUserName(user.getUsername());
         response.setMessage("YES");
         response.setSuccess(true);
 
         return response;
     }
+
+
 }
 

@@ -5,9 +5,8 @@ import lombok.Data;
 @Data
 public class UserResponseDto {
     private String userId;
-    private String name;
-    private int alertCount;
-    private int alertBoolean;
+    private String userName;
     private boolean success;
     private String message;
+
 }
