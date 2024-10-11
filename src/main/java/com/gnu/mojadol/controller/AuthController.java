@@ -8,6 +8,7 @@ import com.gnu.mojadol.service.UserService;
 import com.gnu.mojadol.service.impl.CustomUserDetailServiceImpl;
 import com.gnu.mojadol.service.impl.UserServiceImpl;
 import com.gnu.mojadol.utils.JwtUtil;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-
+@Tag(name = "인증", description = "토큰이 필요 없는 기능 API")
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
