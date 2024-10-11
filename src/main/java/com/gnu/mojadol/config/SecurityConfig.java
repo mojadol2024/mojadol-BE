@@ -62,8 +62,12 @@ public class SecurityConfig {
         MvcRequestMatcher[] permitAll = {
                 mvc.pattern("/auth/**"),
                 mvc.pattern("/token/**"),
-                mvc.pattern("swagger-ui.html"),
-                mvc.pattern("/swagger-ui/**")
+                mvc.pattern("/swagger-ui.html"),
+                mvc.pattern("/swagger-ui/**"),
+                mvc.pattern("/v3/api-docs/**"),
+                mvc.pattern("/favicon.ico"),
+                mvc.pattern("/api-docs/**"),
+                mvc.pattern("/error")
         };
 
         http.csrf((csrf) -> csrf.disable())

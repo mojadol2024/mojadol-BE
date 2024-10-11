@@ -1,12 +1,13 @@
 package com.gnu.mojadol.controller;
 
 import com.gnu.mojadol.service.TokenService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-
+@Tag(name = "토큰", description = "토큰관련 API")
 @RestController
 @RequestMapping("/token")
 public class TokenController {

@@ -32,8 +32,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     Arrays.asList(
                             "/auth/**",
                             "/token/**",
-                            "swagger-ui.html",
-                            "/swagger-ui/**"
+                            "/swagger-ui.html",
+                            "/swagger-ui/**",
+                            "/v3/api-docs/**",
+                            "/api-docs/**",
+                            "/error"
                     ));
 
     @Override
@@ -69,7 +72,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        return StringUtils.startsWithAny(request.getRequestURI(), "/auth/login");
+        return StringUtils.startsWithAny(request.getRequestURI(),
+                "/auth/**",
+                "/token/**",
+                "/swagger-ui.html",
+                "/swagger-ui/**",
+                "/v3/api-docs/**",
+                "/favicon.ico",
+                "/api-docs/**",
+                "/error");
     }
 }
 
