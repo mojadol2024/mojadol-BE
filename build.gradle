@@ -53,11 +53,21 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
 
+    //swagger
     implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.2.0'
 
     implementation 'org.apache.commons:commons-lang3:3.12.0'
-
     implementation 'com.google.code.gson:gson'
+
+
+    // kakao api
+    //Webflux
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	//thymeleaf
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+    // mac dns
+    implementation 'io.netty:netty-resolver-dns-native-macos:4.1.68.Final:osx-aarch_64'
 }
 
 tasks.named('test') {
