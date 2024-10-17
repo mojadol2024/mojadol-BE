@@ -15,6 +15,7 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_seq")
     private int userSeq;
 
     @Column(nullable = false, unique = true)
