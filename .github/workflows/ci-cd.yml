@@ -62,4 +62,5 @@ jobs:
               -e DB_MOJADOL_NAME=${{ secrets.DB_MOJADOL_NAME }} \
               -e DB_MOJADOL_JWT_TOKEN=${{ secrets.DB_MOJADOL_JWT_TOKEN }} \
               -e DB_REDIS_PORT=${{ secrets.DB_REDIS_PORT }} \
+              -e KAKAO_KEY=${{ secrets.KAKAO_KEY }} \
               ${{ secrets.DOCKERHUB_USERNAME }}/mojadol-be:latest
