@@ -13,6 +13,5 @@ public class PhotoResponseDto {
     private int boardSeq;        // 게시글 고유 번호
     private String filePath;     // 사진 파일 경로
     private String uploadDate;   // 업로드 날짜
-    private String photoType;    // "게시글 첨부" 또는 "목격 사진"
 
 }

@@ -46,8 +46,7 @@ public class PhotoServiceImpl implements PhotoService {
                 savedPhoto.getPhotoSeq(),
                 savedPhoto.getBoard().getBoardSeq(),
                 savedPhoto.getFilePath(),
-                savedPhoto.getUploadDate(),
-                ""
+                savedPhoto.getUploadDate()
         );
     }
 
@@ -58,8 +57,7 @@ public class PhotoServiceImpl implements PhotoService {
                         photo.getPhotoSeq(),
                         photo.getBoard().getBoardSeq(),
                         photo.getFilePath(),
-                        photo.getUploadDate(),
-                        ""))
+                        photo.getUploadDate()))
                 .orElseThrow(() -> new RuntimeException("Photo not found"));
     }
 
@@ -71,8 +69,7 @@ public class PhotoServiceImpl implements PhotoService {
                         photo.getPhotoSeq(),
                         photo.getBoard().getBoardSeq(),
                         photo.getFilePath(),
-                        photo.getUploadDate(),
-                        ""))
+                        photo.getUploadDate()))
                 .collect(Collectors.toList());
     }
 
