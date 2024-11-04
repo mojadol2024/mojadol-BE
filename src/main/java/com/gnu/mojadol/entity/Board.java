@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @Table(name = "BOARD")
 @Data
@@ -46,4 +48,8 @@ public class Board {
 
     @Column(length = 3000)
     private String memo;
+
+    //
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Photo> photos;
 }
