@@ -15,4 +15,6 @@ public interface BoardService {
     BoardResponseDto updateBoard(BoardRequestDto boardRequestDto);
 
     BoardResponseDto boardDetail(int boardSeq);
+
+    String delete(BoardRequestDto boardRequestDto);
 }

@@ -78,7 +78,7 @@ public class BoardServiceImpl implements BoardService {
 
     public Page<BoardResponseDto> listBoard(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Board> boards = boardRepository.findAll(pageable);
+        Page<Board> boards = boardRepository.findAllByReportNot(2, pageable); // report가 2인 값은 삭제된 글
 
         // Board 엔티티를 BoardResponseDto로 변환
         Page<BoardResponseDto> dtoPage = boards.map(board -> {
@@ -99,7 +99,6 @@ public class BoardServiceImpl implements BoardService {
         return dtoPage;  // 변환된 Page<BoardResponseDto> 반환
     }
 
-    @Override
     public BoardResponseDto updateBoard(BoardRequestDto boardRequestDto) {
         if (boardRequestDto != null) {
             Board board = boardRepository.findById(boardRequestDto.getBoardSeq())
@@ -163,6 +162,22 @@ public class BoardServiceImpl implements BoardService {
 
 
             return responseDto;
+        }
+        throw new IllegalArgumentException("존재하지 않는 게시글입니다.");
+    }
+
+    public String delete(BoardRequestDto boardRequestDto) {
+        if (boardRequestDto != null) {
+            Board board = boardRepository.findById(boardRequestDto.getBoardSeq())
+                    .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+            User user = userRepository.findByUserSeq(boardRequestDto.getUserSeq());
+
+            board.setReport(2);
+
+            boardRepository.save(board);
+
+            return "YES";
         }
         throw new IllegalArgumentException("존재하지 않는 게시글입니다.");
     }

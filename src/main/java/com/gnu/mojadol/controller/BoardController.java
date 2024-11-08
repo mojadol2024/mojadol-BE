@@ -50,7 +50,7 @@ public class BoardController {
         boardRequestDto.setUserSeq(user.getUserSeq());
         boardService.writeBoard(boardRequestDto);
 
-        return ResponseEntity.ok(HttpStatus.OK);
+        return ResponseEntity.ok("YES");
     }
     // Board 글수정
     @PostMapping("/update")
@@ -74,4 +74,15 @@ public class BoardController {
 
     }
     // Board 글삭제(delete가 아닌 안보이게 수정)
+    @PostMapping("/delete")
+    public ResponseEntity<?> delete(@RequestHeader("Authorization") String accessToken, @RequestBody BoardRequestDto boardRequestDto) {
+        System.out.println("BoardController delete" + new Date());
+
+        String userId = jwtUtil.extractUsername(accessToken);
+        User user = userRepository.findByUserId(userId);
+        boardRequestDto.setUserSeq(user.getUserSeq());
+        String response = boardService.delete(boardRequestDto);
+
+        return ResponseEntity.ok(response);
+    }
 }

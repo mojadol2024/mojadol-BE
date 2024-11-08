@@ -92,7 +92,7 @@ public class AuthController {
             HttpHeaders headers = new HttpHeaders();
             headers.set("accessToken", "Bearer " + responseDto.getAccessToken());
 
-            return new ResponseEntity<>(null, headers, HttpStatus.OK); // 클라이언트에 토큰 반환
+            return new ResponseEntity<>("YES", headers, HttpStatus.OK); // 클라이언트에 토큰 반환
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("아이디 혹은 비밀번호를 확인해주세요.");
@@ -101,11 +101,11 @@ public class AuthController {
 
     //로그아웃
     @PostMapping("/logout")
-    public String logout(@RequestHeader String accessToken) {
+    public String logout(@RequestHeader("Authorization") String accessToken) {
         System.out.println("AuthController logout " + new Date());
         System.out.println(accessToken);
         tokenService.deleteToken(accessToken);
-        return "logout success";
+        return "YES";
     }
 
     //회원가입
@@ -113,7 +113,7 @@ public class AuthController {
     public ResponseEntity<?> register(@RequestBody UserRequestDto userRequestDto) {
         System.out.println("AuthController register " + new Date());
         userService.addUser(userRequestDto);
-        return ResponseEntity.ok("addUser success");
+        return ResponseEntity.ok("YES");
 
     }
 

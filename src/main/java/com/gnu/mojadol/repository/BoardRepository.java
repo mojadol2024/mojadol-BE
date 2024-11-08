@@ -10,6 +10,7 @@ import java.util.List;
 
 @Repository
 public interface BoardRepository extends JpaRepository<Board, Integer> {
-    Page<Board> findAll(Pageable pageable);
+    Page<Board> findAllByReportNot(int report, Pageable pageable);
+    Board findByBoardSeq(int boardSeq);
 
 }
