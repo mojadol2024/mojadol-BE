@@ -36,8 +36,11 @@ public class Comment {
     private String commentText;
 
     @Column(nullable = false, name = "created_at")
-    private String createdAt;
+    private LocalDateTime createdAt;
 
     @Column(nullable = false, name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     private LocalDateTime updatedAt;
+
+    @Column(nullable = false, name = "author")
+    private boolean Author;
 }
