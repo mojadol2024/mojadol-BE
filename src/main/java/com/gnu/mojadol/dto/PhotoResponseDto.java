@@ -7,11 +7,10 @@ import lombok.AllArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-
-public class PhotoResponseDto {// 클라이언트에 반환할 때 필요한 모든 사진 정보(파일 경로와 업로드 날짜 등)를 포함
-    private int photoSeq;        // 사진 고유 번호
-    private int boardSeq;        // 게시글 고유 번호
-    private String filePath;     // 사진 파일 경로
-    private String uploadDate;   // 업로드 날짜
-    // private String photoType;    // "게시글 첨부" 또는 "목격 사진"
+public class PhotoResponseDto {
+    private int photoSeq;      // 사진 고유 번호
+    // private int userSeq; // 사용자 ID (USER 테이블의 외래 키)
+    private int boardSeq;      // 게시글 고유 번호
+    private String filePath;   // 사진 파일 경로
+    private String uploadDate; // 업로드 날짜 (클라이언트에게 제공)
 }

@@ -4,7 +4,9 @@ import lombok.Data;
 
 @Data
 public class BoardRequestDto {
-    private String breedName;  // 견종 이름
+
+    //private String title;       // 게시글 제목
+    private String breedName;  // 견종 이름 (string으로 받지 말고, breed 테이블로 받는 경우?)
     private int report;        // 제보(1) / 실종 신고(0)
     private String dogName;    // 개 이름
     private String dogAge;     // 개 나이

@@ -10,6 +10,7 @@ import java.util.List;
 
 @Repository
 public interface BoardRepository extends JpaRepository<Board, Integer> {
-    Page<Board> findAll(Pageable pageable);
-
+    //List<Board> findByUser_UserSeq(int userSeq); // 사용자 ID로 게시글 찾기
+    Page<Board> findAllByReportNot(int report, Pageable pageable);
+    Board findByBoardSeq(int boardSeq);
 }

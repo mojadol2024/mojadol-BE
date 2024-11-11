@@ -6,7 +6,7 @@ import java.util.List;
 public interface PhotoService {
     // 사진 저장
     PhotoResponseDto savePhoto(PhotoRequestDto photoRequestDto);
-    // ID로 사진 조회
+    // ID로 사진 조회 및 확인
     PhotoResponseDto getPhotoById(int photoSeq);
     // 어떤 게시글에 대한 모든 사진 조회
     List<PhotoResponseDto> getPhotosByBoardSeq(int boardSeq);
