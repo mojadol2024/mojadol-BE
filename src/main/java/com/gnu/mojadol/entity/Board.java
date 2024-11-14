@@ -23,6 +23,10 @@ public class Board {
     @JoinColumn(name = "user_seq", referencedColumnName = "user_seq", nullable = false)
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "location_seq", referencedColumnName = "location_seq", nullable = false)
+    private Location location;
+
     @Column(nullable = false)
     private int report;
 

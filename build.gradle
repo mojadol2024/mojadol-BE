@@ -20,6 +20,7 @@ configurations {
 }
 
 repositories {
+    google()
     mavenCentral()
 }
 
@@ -66,6 +67,11 @@ dependencies {
 
     // mac dns
     implementation 'io.netty:netty-resolver-dns-native-macos:4.1.68.Final:osx-aarch_64'
+
+    // firebase
+    implementation 'com.google.firebase:firebase-admin:9.2.0'
+    implementation group: 'com.google.auth', name: 'google-auth-library-oauth2-http', version: '1.23.0'
+    implementation group: 'com.google.firebase', name: 'firebase-messaging', version: '22.0.0'
 
 }
 

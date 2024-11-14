@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CommentServiceImpl implements CommentService {
@@ -80,7 +82,6 @@ public class CommentServiceImpl implements CommentService {
         return commentResponseDto;
     }
 
-    /* 이건 제가 나중에 Board에서 수정할게요
     // 2. 특정 게시글에 대한 모든 댓글 조회
     public List<CommentResponseDto> getCommentsByBoardSeq(int boardSeq) {
         List<Comment> comments = commentRepository.findByBoard_BoardSeq(boardSeq)
@@ -96,7 +97,6 @@ public class CommentServiceImpl implements CommentService {
             return dto;
         }).collect(Collectors.toList());
     }
-    */
 
     // 3. 특정 댓글 수정
     public CommentResponseDto updateComment(CommentRequestDto commentRequestDto) {
@@ -138,6 +138,14 @@ public class CommentServiceImpl implements CommentService {
 
         return responseDto;
     }
+
+    위치 3 종류
+    실종신고 : 드롭다운 바 시까지 / 상세주소
+    사진찍기 : api로 사진 찍고 게시글작성하면 현재위치를 가져오는 (드롭다운 바 시까지) / 상세주소
+    검색 : 드롭다운 바 시까지
+    location변수 / headers = 3개로 나누어서 받기 / headers or param = 1개로 주면 백엔드에서 분리해서 저장 /
+    db 2가지 = 도 / 시 / 상세
+
     */
 }
 
