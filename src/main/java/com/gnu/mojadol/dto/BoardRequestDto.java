@@ -14,5 +14,8 @@ public class BoardRequestDto {
     private String postDate;   // 게시일
     private String memo;       // 메모
     private int userSeq;       // 사용자 ID (USER 테이블의 외래 키)
-    private int boardSeq;
+    private int boardSeq;      //
+    private String province;   // 도
+    private String city;       // 시
+    private String district;   // 군구
 }

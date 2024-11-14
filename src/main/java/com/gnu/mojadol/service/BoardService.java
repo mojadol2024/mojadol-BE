@@ -10,9 +10,11 @@ import java.util.List;
 
 public interface BoardService {
     BoardResponseDto writeBoard(BoardRequestDto boardRequestDto);
-    Page<BoardResponseDto> listBoard(int page, int size);
+    Page<Board> listBoard(int page, int size, String title, String dogName, String location);
 
     BoardResponseDto updateBoard(BoardRequestDto boardRequestDto);
 
     BoardResponseDto boardDetail(int boardSeq);
+
+    String delete(BoardRequestDto boardRequestDto);
 }

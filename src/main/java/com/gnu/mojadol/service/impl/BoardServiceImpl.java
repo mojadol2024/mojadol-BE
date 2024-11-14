@@ -4,21 +4,25 @@ import com.gnu.mojadol.dto.BoardRequestDto;
 import com.gnu.mojadol.dto.BoardResponseDto;
 import com.gnu.mojadol.entity.Board;
 import com.gnu.mojadol.entity.Breed;
+import com.gnu.mojadol.entity.Location;
 import com.gnu.mojadol.entity.User;
 import com.gnu.mojadol.repository.BoardRepository;
 import com.gnu.mojadol.repository.BreedRepository;
+import com.gnu.mojadol.repository.LocationRepository;
 import com.gnu.mojadol.repository.UserRepository;
 import com.gnu.mojadol.service.BoardService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class BoardServiceImpl implements BoardService {
@@ -31,6 +35,9 @@ public class BoardServiceImpl implements BoardService {
 
     @Autowired
     private BreedRepository breedRepository;
+
+    @Autowired
+    private LocationRepository locationRepository;
 
 
     public BoardResponseDto writeBoard(BoardRequestDto boardRequestDto) {
@@ -48,7 +55,14 @@ public class BoardServiceImpl implements BoardService {
 
         String dateString = dateFormat.format(date);
 
-        Breed breed = breedRepository.findById(boardRequestDto.getBreedName()).orElse(null);
+        Breed breed = breedRepository.findById(boardRequestDto.getBreedName())
+                .orElseThrow(() -> new IllegalArgumentException("Breed가 없습니다"));
+
+        Location newLocation = new Location();
+        newLocation.setProvince(boardRequestDto.getProvince());
+        newLocation.setCity(boardRequestDto.getCity());
+        newLocation.setDistrict(boardRequestDto.getDistrict());
+        locationRepository.save(newLocation);
 
         Board board = new Board();
         board.setDogName(boardRequestDto.getDogName());
@@ -60,6 +74,7 @@ public class BoardServiceImpl implements BoardService {
         board.setMemo(boardRequestDto.getMemo());
         board.setBreed(breed);
         board.setUser(user);
+        board.setLocation(newLocation);
 
         Board savedBoard = boardRepository.save(board);
 
@@ -75,65 +90,76 @@ public class BoardServiceImpl implements BoardService {
 
         return responseDto;
     }
-
-    public Page<BoardResponseDto> listBoard(int page, int size) {
+    // 견종 or 개이름 까지는 완성  위치 검색을 논의 해봐야 할듯 어떻게 값이 들어오게 할건지 의논해야함
+    public Page<Board> listBoard(int page, int size, String breedName, String dogName, String location) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Board> boards = boardRepository.findAll(pageable);
 
-        // Board 엔티티를 BoardResponseDto로 변환
-        Page<BoardResponseDto> dtoPage = boards.map(board -> {
-            BoardResponseDto dto = new BoardResponseDto();
-            dto.setBoardSeq(board.getBoardSeq());
-            dto.setDogName(board.getDogName());
-            dto.setDogAge(board.getDogAge());
-            dto.setDogGender(board.getDogGender());
-            dto.setDogWeight(board.getDogWeight());
-            dto.setLostDate(board.getLostDate());
-            dto.setPostDate(board.getPostDate());
-            dto.setMemo(board.getMemo());
-            dto.setBreedName(board.getBreed().getBreedName()); // Breed 이름
-            dto.setNickName(board.getUser().getNickname());    // 사용자 닉네임만 노출
-            return dto;  // 변환된 DTO 반환
-        });
+        // 조건을 설정하는 Specification 생성
+        Specification<Board> spec = Specification.where((root, query, criteriaBuilder) ->
+                criteriaBuilder.notEqual(root.get("report"), 2));
 
-        return dtoPage;  // 변환된 Page<BoardResponseDto> 반환
+        if (breedName != null && !breedName.isEmpty()) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(root.get("breedName"), "%" + breedName + "%"));
+        }
+
+        if (dogName != null && !dogName.isEmpty()) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(root.get("dogName"), "%" + dogName + "%"));
+        }
+
+        if (location != null && !location.isEmpty()) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(root.get("location"), "%" + location + "%"));
+        }
+
+        Page<Board> boards = boardRepository.findAll(spec, pageable);
+
+        return boards;
     }
 
-    @Override
     public BoardResponseDto updateBoard(BoardRequestDto boardRequestDto) {
         if (boardRequestDto != null) {
             Board board = boardRepository.findById(boardRequestDto.getBoardSeq())
                     .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
             User user = userRepository.findByUserSeq(boardRequestDto.getUserSeq());
+            Location location = locationRepository.findById(board.getLocation().getLocationSeq())
+                    .orElseThrow(() -> new IllegalArgumentException("위치 정보가 존재하지 않습니다."));
 
-        Date date = new Date();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date date = new Date();
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-        String dateString = dateFormat.format(date);
+            String dateString = dateFormat.format(date);
 
-        board.setDogName(boardRequestDto.getDogName());
-        board.setDogAge(boardRequestDto.getDogAge());
-        board.setDogGender(boardRequestDto.getDogGender());
-        board.setDogWeight(boardRequestDto.getDogWeight());
-        board.setLostDate(boardRequestDto.getLostDate());
-        board.setMemo(boardRequestDto.getMemo());
+            location.setProvince(boardRequestDto.getProvince());
+            location.setCity(boardRequestDto.getCity());
+            location.setDistrict(boardRequestDto.getDistrict());
 
-        Board updatedBoard = boardRepository.save(board);
+            locationRepository.save(location);
 
-        BoardResponseDto boardResponseDto = new BoardResponseDto();
+            board.setDogName(boardRequestDto.getDogName());
+            board.setDogAge(boardRequestDto.getDogAge());
+            board.setDogGender(boardRequestDto.getDogGender());
+            board.setDogWeight(boardRequestDto.getDogWeight());
+            board.setLostDate(boardRequestDto.getLostDate());
+            board.setMemo(boardRequestDto.getMemo());
 
-        boardResponseDto.setBoardSeq(updatedBoard.getBoardSeq());
-        boardResponseDto.setDogName(updatedBoard.getDogName());
-        boardResponseDto.setDogAge(updatedBoard.getDogAge());
-        boardResponseDto.setDogGender(updatedBoard.getDogGender());
-        boardResponseDto.setDogWeight(updatedBoard.getDogWeight());
-        boardResponseDto.setLostDate(updatedBoard.getLostDate());
-        boardResponseDto.setMemo(updatedBoard.getMemo());
-        boardResponseDto.setBreedName(updatedBoard.getBreed().getBreedName());
-        boardResponseDto.setUserSeq(boardRequestDto.getUserSeq());
-        boardResponseDto.setPostDate(dateString);
-        boardResponseDto.setNickName(user.getNickname());
+            Board updatedBoard = boardRepository.save(board);
+
+            BoardResponseDto boardResponseDto = new BoardResponseDto();
+
+            boardResponseDto.setBoardSeq(updatedBoard.getBoardSeq());
+            boardResponseDto.setDogName(updatedBoard.getDogName());
+            boardResponseDto.setDogAge(updatedBoard.getDogAge());
+            boardResponseDto.setDogGender(updatedBoard.getDogGender());
+            boardResponseDto.setDogWeight(updatedBoard.getDogWeight());
+            boardResponseDto.setLostDate(updatedBoard.getLostDate());
+            boardResponseDto.setMemo(updatedBoard.getMemo());
+            boardResponseDto.setBreedName(updatedBoard.getBreed().getBreedName());
+            boardResponseDto.setUserSeq(boardRequestDto.getUserSeq());
+            boardResponseDto.setPostDate(dateString);
+            boardResponseDto.setNickName(user.getNickname());
 
         return boardResponseDto;
         }
@@ -166,4 +192,46 @@ public class BoardServiceImpl implements BoardService {
         }
         throw new IllegalArgumentException("존재하지 않는 게시글입니다.");
     }
+
+    public String delete(BoardRequestDto boardRequestDto) {
+        if (boardRequestDto != null) {
+            Board board = boardRepository.findById(boardRequestDto.getBoardSeq())
+                    .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+            User user = userRepository.findByUserSeq(boardRequestDto.getUserSeq());
+
+            board.setReport(2);
+
+            boardRepository.save(board);
+
+            return "YES";
+        }
+        throw new IllegalArgumentException("존재하지 않는 게시글입니다.");
+    }
+/*
+    // 시군 까지 받기
+    public BoardRequestDto addressParser(String location) {
+        String pattern = "(경상남도|경기도|서울특별시|부산광역시|대구광역시|인천광역시|광주광역시|대전광역시|울산광역시|세종특별자치시|" +
+                "[가-힣]+도|[가-힣]+시|[가-힣]+군|[가-힣]+구)([가-힣]+시|[가-힣]+구)([가-힣]+동|[가-힣]+읍|[가-힣]+면)";
+
+        Pattern r = Pattern.compile(pattern);
+        Matcher m = r.matcher(location);
+
+        if(m.find()) {
+            String province = m.group(1);
+            String city = m.group(2);
+            String district = m.group(3);
+
+            BoardRequestDto request = new BoardRequestDto();
+            request.setProvince(province);
+            request.setCity(city);
+            request.setDistrict(district);
+
+            return request;
+        }else{
+            throw new IllegalArgumentException("존재하지 않는 지역입니다.");
+        }
+    }
+*/
+
 }
