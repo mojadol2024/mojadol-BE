@@ -1,4 +1,4 @@
-# POSSG_BE
+# MOJADOL
 웹 기반 POS 시스템
 
 ## 🖥️ 프로젝트 소개
