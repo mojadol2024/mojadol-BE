@@ -107,8 +107,6 @@ public class BoardController {
             fcmService.sendNotificationToUsers(userSeqs, title, bodies);
         }
 
-
-
         return ResponseEntity.ok("YES");
     }
     // Board 글수정

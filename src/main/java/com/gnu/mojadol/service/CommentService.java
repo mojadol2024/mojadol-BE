@@ -1,9 +1,7 @@
 package com.gnu.mojadol.service;
 
-import com.gnu.mojadol.dto.BoardResponseDto;
 import com.gnu.mojadol.dto.CommentRequestDto;
 import com.gnu.mojadol.dto.CommentResponseDto;
-import org.springframework.data.domain.Page;
 
 import java.util.List;
 
