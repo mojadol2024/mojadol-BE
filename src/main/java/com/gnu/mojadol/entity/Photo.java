@@ -15,10 +15,6 @@ public class Photo {
     @Column(name = "photo_seq")
     private int photoSeq;  // 기본 키
 
-    // @ManyToOne
-    // @JoinColumn(name = "user_seq", referencedColumnName = "user_seq", nullable = false)
-    // private User user;  // USER 테이블의 외래 키로 사용자와 관계 설정
-
     @ManyToOne
     @JoinColumn(name = "board_seq", referencedColumnName = "board_seq", nullable = false)
     private Board board;  // BOARD 외래 키

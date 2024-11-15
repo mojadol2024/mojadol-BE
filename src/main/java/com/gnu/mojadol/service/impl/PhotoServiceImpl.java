@@ -10,7 +10,9 @@ import com.gnu.mojadol.service.PhotoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,16 +32,19 @@ public class PhotoServiceImpl implements PhotoService {
         Board board = boardRepository.findById(photoRequestDto.getBoardSeq())
                 .orElseThrow(() -> new RuntimeException("Board not found"));
 
+        Date date = new Date();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String dateString = dateFormat.format(date);
+
         Photo photo = new Photo();
         photo.setBoard(board);
         photo.setFilePath(photoRequestDto.getFilePath());
-        photo.setUploadDate(LocalDateTime.now().toString());
+        photo.setUploadDate(dateString);
 
         Photo savedPhoto = photoRepository.save(photo);
 
         return new PhotoResponseDto(
                 savedPhoto.getPhotoSeq(),
-                // savedPhoto.getBoard().getUser().getUserSeq(), // 사용자 식별자
                 savedPhoto.getBoard().getBoardSeq(),
                 savedPhoto.getFilePath(),
                 savedPhoto.getUploadDate()
