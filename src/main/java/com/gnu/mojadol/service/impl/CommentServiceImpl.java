@@ -32,7 +32,6 @@ public class CommentServiceImpl implements CommentService {
     private CommentRepository commentRepository; // 소문자로 수정
 
     // 1. 댓글 작성
-    @Override
     public CommentResponseDto addComment(CommentRequestDto commentRequestDto) {
         // 로그 추가: addComment 메소드의 초기 입력값을 확인
         System.out.println("Adding comment to boardSeq: " + commentRequestDto.getBoardSeq());
@@ -98,6 +97,7 @@ public class CommentServiceImpl implements CommentService {
         }).collect(Collectors.toList());
     }
 
+
     // 3. 특정 댓글 수정
     public CommentResponseDto updateComment(CommentRequestDto commentRequestDto) {
         if (commentRequestDto != null) {
@@ -114,7 +114,6 @@ public class CommentServiceImpl implements CommentService {
     }
 
     // 4. 특정 댓글 삭제
-    @Override
     public void deleteComment(CommentRequestDto commentRequestDto) {
         if (!commentRepository.existsById(commentRequestDto.getCommentSeq()) && !userRepository.existsById(commentRequestDto.getUserSeq())) {
             throw new IllegalArgumentException("댓글을 찾을 수 없습니다. 혹은 유저를 찾을 수 없습니다.");
@@ -124,6 +123,7 @@ public class CommentServiceImpl implements CommentService {
 
         commentRepository.save(comment);
     }
+
     /*
     // 5. 특정 댓글 조회
     @Override

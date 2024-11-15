@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
-import java.util.List;
 
 @RestController
 @RequestMapping("/comments")
@@ -27,7 +26,7 @@ public class CommentController {
     private UserRepository userRepository;
 
     // 댓글 추가
-    @PostMapping("/write") // ResponseEntity에 무슨 값을 보내야 할지 모를때나 여러 값을 보낼때 ?를 쓰면 여러 값을 보낼 수 있어요 나머지는 잘 하셨어요
+    @PostMapping("/write")
     public ResponseEntity<?> addComment(@RequestBody CommentRequestDto commentRequestDto,
                                              @RequestHeader("Authorization") String accessToken) {
         System.out.println("CommentController addComment " + new Date());
@@ -48,10 +47,11 @@ public class CommentController {
         List<CommentResponseDto> comments = commentService.getCommentsByBoardSeq(boardSeq);
         return ResponseEntity.ok(comments);
     }
+<<<<<<< HEAD
     */
 
     // 댓글 수정
-    @PostMapping("/edit") // putmapping은 잘 안써요
+    @PostMapping("/edit")
     public ResponseEntity<CommentResponseDto> update(@RequestBody CommentRequestDto commentRequestDto,
                                                      @RequestHeader("Authorization") String accessToken) {
         System.out.println("CommentController updateComment " + new Date());

@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class BoardResponseDto {
     private int boardSeq;       // 게시글 ID
+    //private String title;       // 게시글 제목
     private String breedName;   // 견종 이름
     private int report;         // 제보(1) / 실종 신고(0)
     private String dogName;     // 개 이름

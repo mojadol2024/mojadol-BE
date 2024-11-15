@@ -10,7 +10,7 @@ import java.util.List;
 public class BoardSpecification {
 
     public static Specification<Board> Search(String keyword) {
-        return(root, query, criteriaBuilder) -> {
+        return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             predicates.add(criteriaBuilder.notEqual(root.get("report"), 2));

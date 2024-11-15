@@ -208,6 +208,7 @@ public class BoardServiceImpl implements BoardService {
         }
         throw new IllegalArgumentException("존재하지 않는 게시글입니다.");
     }
+
 /*
     // 시군 까지 받기
     public BoardRequestDto addressParser(String location) {
