@@ -69,7 +69,8 @@ public class SecurityConfig {
                 mvc.pattern("/v3/api-docs/**"),
                 mvc.pattern("/favicon.ico"),
                 mvc.pattern("/api-docs/**"),
-                mvc.pattern("/error")
+                mvc.pattern("/error"),
+                mvc.pattern("/images/**")
         };
 
         http.csrf((csrf) -> csrf.disable())

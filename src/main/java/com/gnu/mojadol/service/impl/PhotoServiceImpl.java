@@ -7,6 +7,7 @@ import com.gnu.mojadol.entity.Photo;
 import com.gnu.mojadol.repository.BoardRepository;
 import com.gnu.mojadol.repository.PhotoRepository;
 import com.gnu.mojadol.service.PhotoService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -78,8 +79,8 @@ public class PhotoServiceImpl implements PhotoService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public void deletePhoto(int photoSeq) {
-        photoRepository.deleteById(photoSeq);
+    @Transactional
+    public void deletePhoto(int boardSeq) {
+        photoRepository.deleteFlagUpdate(boardSeq);
     }
 }

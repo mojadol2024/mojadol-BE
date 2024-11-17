@@ -29,6 +29,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -77,21 +79,21 @@ public class AuthController {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequestDto.getUserId(), authRequestDto.getUserPw())
             );
-
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String token = jwtUtil.generateAccessToken(userDetails.getUsername());
             String refreshToken = jwtUtil.generateRefreshToken(userDetails.getUsername());
+
             // Redis에 토큰 저장
             tokenService.saveToken(userDetails.getUsername(), refreshToken, 120, TimeUnit.MINUTES);
-
             AuthResponseDto responseDto = new AuthResponseDto();
             responseDto.setAccessToken(token);
 
+            User user = userRepository.findByUserId(authRequestDto.getUserId());
+
             HttpHeaders headers = new HttpHeaders();
             headers.set("accessToken", "Bearer " + responseDto.getAccessToken());
-
+            headers.set("userSeq", String.valueOf(user.getUserSeq()));
             return new ResponseEntity<>("YES", headers, HttpStatus.OK); // 클라이언트에 토큰 반환
         } catch (Exception e) {
             e.printStackTrace();
@@ -130,8 +132,6 @@ public class AuthController {
     public ResponseEntity<?> callback(@RequestParam("code") String code) {
         System.out.println("AuthController kakaoCallback " + new Date());
 
-        System.out.println(code);
-
         Date date = new Date();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -140,23 +140,14 @@ public class AuthController {
 
         KakaoResponseDto kakaoResponseDto = kakaoService.getAccessTokenFromKakao(code);
 
-        String accessToken = kakaoResponseDto.accessToken;
-        String refreshToken = kakaoResponseDto.getRefreshToken();
+        String kakaoAccessToken = kakaoResponseDto.accessToken;
 
-        KakaoUserInfoResponseDto userInfo = kakaoService.getUserInfo(accessToken);
+        KakaoUserInfoResponseDto userInfo = kakaoService.getUserInfo(kakaoAccessToken);
 
         String userId = String.valueOf(userInfo.getId());
 
-        // Redis에 토큰 저장
-        if (accessToken != null && refreshToken != null) {
-            ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
-            valueOps.set(userId, refreshToken);
-            System.out.println(" [Kakao Service] Tokens saved in Redis");
-        } else {
-            System.out.println(" [Kakao Service] Tokens are null, not saving to Redis");
-        }
-
         User userData = userRepository.findByUserId(userId);
+
         if(userData == null) {
             // 회원 정보 DB에 저장
             User user = new User();
@@ -172,10 +163,16 @@ public class AuthController {
             System.out.println("KakaoUser data Save Success");
         }
 
-        HttpHeaders headers = new HttpHeaders();
+        String accessToken = jwtUtil.generateAccessToken(userData.getUserId());
+        String refreshToken = jwtUtil.generateRefreshToken(userData.getUserId());
 
-        String redirectUrl = "http://10.0.2.2:8081/Home?accessToken=" + accessToken;
-        headers.setLocation(URI.create(redirectUrl)); // 리다이렉트 URL 설정
+        tokenService.saveToken(userData.getUserId(), refreshToken, 120, TimeUnit.MINUTES);
+
+        HttpHeaders headers = new HttpHeaders();
+        System.out.println(userData.getUserSeq());
+
+        String redirectUrl = "http://10.0.2.2:8081/Board?accessToken=" + accessToken + "&userSeq=" + userData.getUserSeq();
+        headers.setLocation(URI.create(redirectUrl));
         return new ResponseEntity<>(null, headers, HttpStatus.FOUND);
     }
 

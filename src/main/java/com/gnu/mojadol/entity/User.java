@@ -11,7 +11,6 @@ import java.util.List;
 @Entity
 @Table(name = "USER")
 public class User implements UserDetails {
-// @GeneratedValue(strategy = GenerationType.IDENTITY) auto_increment일때 사용
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
