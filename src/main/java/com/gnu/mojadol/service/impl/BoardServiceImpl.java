@@ -43,7 +43,6 @@ public class BoardServiceImpl implements BoardService {
     @Autowired
     private PhotoRepository photoRepository;
 
-
     public BoardResponseDto writeBoard(BoardRequestDto boardRequestDto) {
         User user = null;
         if (boardRequestDto != null) {
@@ -106,7 +105,7 @@ public class BoardServiceImpl implements BoardService {
             return criteriaBuilder.equal(photos.get("deletedFlag"), 0);
         });
 
-        Page<Board> boards = boardRepository.findAll(spec, pageable);
+        Page<Board> boards = boardRepository.findBoards(spec, pageable);
 
         return boards;
     }

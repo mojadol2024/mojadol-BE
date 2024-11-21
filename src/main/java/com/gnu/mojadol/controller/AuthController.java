@@ -3,6 +3,7 @@ package com.gnu.mojadol.controller;
 import com.gnu.mojadol.dto.*;
 import com.gnu.mojadol.entity.User;
 import com.gnu.mojadol.repository.UserRepository;
+import com.gnu.mojadol.service.MailService;
 import com.gnu.mojadol.service.TokenService;
 import com.gnu.mojadol.service.UserService;
 import com.gnu.mojadol.service.impl.CustomUserDetailServiceImpl;
@@ -36,6 +37,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.Random;
+
 @Tag(name = "인증", description = "토큰이 필요 없는 기능 API")
 @RestController
 @RequestMapping("/auth")
@@ -70,6 +73,9 @@ public class AuthController {
 
     @Autowired
     private UserDetailsService userDetailsService;
+
+    @Autowired
+    private MailService mailService;
 
     //로그인
     @PostMapping("/login")
@@ -175,6 +181,158 @@ public class AuthController {
         headers.setLocation(URI.create(redirectUrl));
         return new ResponseEntity<>(null, headers, HttpStatus.FOUND);
     }
+
+    //아이디 찾기
+    @PostMapping("/findUserId")
+    public ResponseEntity<?> findUserId(@RequestBody UserRequestDto userRequestDto) {
+        System.out.println("AuthController findUserId" + new Date());
+
+        try {
+            User user = userRepository.findByMail(userRequestDto.getMail());
+
+            if (user != null) {
+
+                String userId = user.getUserId();
+                if (userId.length() > 2) {
+                    userId = userId.substring(0, userId.length() - 2) + "**";
+                }
+
+                String message = "";
+
+                message += "<!DOCTYPE html>";
+                message += "<html lang='en'>";
+                message += "<head>";
+                message += "    <meta charset='UTF-8'>";
+                message += "    <meta name='viewport' content='width=device-width, initial-scale=1.0'>";
+                message += "    <style>";
+                message += "        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }";
+                message += "        .email-container { max-width: 600px; margin: 30px auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }";
+                message += "        .header { text-align: center; font-size: 24px; font-weight: bold; color: #333; margin-bottom: 20px; }";
+                message += "        .content { font-size: 16px; color: #555; line-height: 1.5; }";
+                message += "        .content p { margin: 10px 0; }";
+                message += "        .content .highlight { font-weight: bold; color: #007BFF; }";
+                message += "        .footer { text-align: center; margin-top: 20px; font-size: 14px; color: #aaa; }";
+                message += "    </style>";
+                message += "</head>";
+                message += "<body>";
+                message += "    <div class='email-container'>";
+                message += "        <div class='header'> 추견 60분 아이디 찾기 결과 </div>";
+                message += "        <div class='content'>";
+                message += "            <p>안녕하세요, <span class='highlight'>" + user.getUsername() + "</span>회원님!</p>";
+                message += "            <p>요청하신 아이디는 다음과 같습니다:</p>";
+                message += "            <p class='highlight'>" + userId + "</p>";
+                message += "            <p>아이디를 안전하게 보관하시고, 로그인 정보를 타인과 공유하지 마세요.</p>";
+                message += "        </div>";
+                message += "        <div class='footer'>이 메일은 발신 전용입니다. 문의 사항은 고객센터를 이용해 주세요.</div>";
+                message += "    </div>";
+                message += "</body>";
+                message += "</html>";
+
+                MailDto mailDto = new MailDto();
+                mailDto.setTitle("추견 60분 " + user.getUsername() + "님 아이디 찾기");
+                mailDto.setAddress(user.getMail());
+                mailDto.setMessage(message);
+                mailService.mailSend(mailDto);
+            }
+
+            return ResponseEntity.ok("YES");
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("이메일이 잘못 되었습니다.");
+        }
+    }
+
+    // 비밀번호 찾기
+    @PostMapping("/findPassword")
+    public ResponseEntity<?> findPassword(@RequestBody UserRequestDto userRequestDto) {
+        System.out.println("AuthController findPassword" + new Date());
+        try {
+            User user = userRepository.findByUserIdAndMail(userRequestDto.getUserId(), userRequestDto.getMail());
+            if (user != null) {
+
+                Random random = new Random();
+                int min = 100000;
+                int max = 999999;
+                String verificationCode = String.valueOf(random.nextInt(max - min + 1) + min);
+
+                tokenService.saveToken(user.getUserId() + user.getMail(), verificationCode, 5, TimeUnit.MINUTES);
+
+                String message = "";
+
+                message += "<!DOCTYPE html>";
+                message += "<html lang='en'>";
+                message += "<head>";
+                message += "    <meta charset='UTF-8'>";
+                message += "    <meta name='viewport' content='width=device-width, initial-scale=1.0'>";
+                message += "    <style>";
+                message += "        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f9f9f9; }";
+                message += "        .email-container { max-width: 600px; margin: 30px auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }";
+                message += "        .header { text-align: center; font-size: 24px; font-weight: bold; color: #333; margin-bottom: 20px; }";
+                message += "        .content { font-size: 16px; color: #555; line-height: 1.5; }";
+                message += "        .content p { margin: 10px 0; }";
+                message += "        .content .highlight { font-weight: bold; color: #007BFF; }";
+                message += "        .footer { text-align: center; margin-top: 20px; font-size: 14px; color: #aaa; }";
+                message += "    </style>";
+                message += "</head>";
+                message += "<body>";
+                message += "    <div class='email-container'>";
+                message += "        <div class='header'> 추견 60분 메일 본인 인증 코드 </div>";
+                message += "        <div class='content'>";
+                message += "            <p>안녕하세요, 회원님!</p>";
+                message += "            <p>추견 60분 본인 인증 번호입니다.</p>";
+                message += "            <p class='highlight'>" + verificationCode + "</p>";
+                message += "            <p>코드를 안전하게 보관하시고, 로그인 정보를 타인과 공유하지 마세요.</p>";
+                message += "        </div>";
+                message += "        <div class='footer'>이 메일은 발신 전용입니다. 문의 사항은 고객센터를 이용해 주세요.</div>";
+                message += "    </div>";
+                message += "</body>";
+                message += "</html>";
+
+                MailDto mailDto = new MailDto();
+                mailDto.setTitle("추견 60분 " + user.getUsername() + "님 아이디 찾기");
+                mailDto.setAddress(user.getMail());
+                mailDto.setMessage(message);
+                mailService.mailSend(mailDto);
+            }
+            return ResponseEntity.ok("YES");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("아이디 및 이메일이 잘못되었습니다.");
+        }
+    }
+
+    @PostMapping("/mailCheck")
+    public ResponseEntity<?> mailCheck(@RequestBody UserRequestDto userRequestDto, @RequestBody String code){
+        System.out.println("AuthController mailCheck" + new Date());
+        try {
+            String redisCode = tokenService.getToken(userRequestDto.getUserId() + userRequestDto.getMail());
+            if (code.equals(redisCode)) {
+
+                tokenService.deleteToken(userRequestDto.getUserId() + userRequestDto.getMail());
+
+                return ResponseEntity.ok("YES");
+            }
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("코드가 잘못되었습니다.");
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("잘못된 요청 입니다.");
+        }
+    }
+
+    @PostMapping("/updatePassword")
+    public ResponseEntity<?> updatePassword(@RequestBody UserRequestDto userRequestDto) {
+        System.out.println("AuthController updatePassword" + new Date());
+        try {
+            userService.updatePassword(userRequestDto);
+
+            return ResponseEntity.ok("YES");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("잘못된 요청 입니다.");
+        }
+    }
+
 
 }
 

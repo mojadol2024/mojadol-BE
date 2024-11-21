@@ -2,6 +2,7 @@ package com.gnu.mojadol.entity;
 
 import lombok.Data;
 import jakarta.persistence.*;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -17,14 +18,26 @@ public class User implements UserDetails {
     @Column(name = "user_seq")
     private int userSeq;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, name = "user_id")
     private String userId;
+
+    @Column(nullable = false, name = "phone_number")
     private String phoneNumber;
-    @Column(nullable = false)
+
+    @Column(nullable = false, name = "user_pw")
     private String userPw;
+
+    @Column(nullable = false, name = "user_name")
     private String userName;
+
+    @Column(nullable = false, name = "nickname")
     private String nickname;
+
+    @Column(nullable = false, name = "regi_date")
     private String regiDate;
+
+    @Column(nullable = false, name = "mail")
+    private String mail;
 
     @ElementCollection(fetch = FetchType.EAGER)
     private List<GrantedAuthority> authorities;

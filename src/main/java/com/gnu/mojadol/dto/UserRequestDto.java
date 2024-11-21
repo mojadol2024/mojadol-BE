@@ -9,4 +9,5 @@ public class UserRequestDto {
     private String nickName;
     private String userName;
     private String regiTime;
+    private String mail;
 }

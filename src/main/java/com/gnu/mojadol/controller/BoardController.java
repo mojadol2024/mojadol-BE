@@ -33,7 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-
+@CrossOrigin(origins ="*")
 @RestController
 @RequestMapping("/board")
 public class BoardController {
@@ -232,8 +232,6 @@ public class BoardController {
         responseDto.setPhotos(url);
         responseMap.put("boardDetail", responseDto);
         responseMap.put("comments", commentResponseDtos);
-
-        System.out.println(responseMap);
 
         return ResponseEntity.ok(responseMap);
 
