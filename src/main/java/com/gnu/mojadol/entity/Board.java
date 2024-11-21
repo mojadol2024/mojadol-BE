@@ -3,11 +3,15 @@ package com.gnu.mojadol.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+import java.util.List;
 
 @Entity
 @Table(name = "BOARD")
 @Data
 @NoArgsConstructor
+@ToString(exclude = "photo")
 public class Board {
 
     @Id
@@ -26,6 +30,9 @@ public class Board {
     @ManyToOne
     @JoinColumn(name = "location_seq", referencedColumnName = "location_seq", nullable = false)
     private Location location;
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Photo> photo;
 
     @Column(nullable = false)
     private int report;
@@ -50,4 +57,5 @@ public class Board {
 
     @Column(length = 3000)
     private String memo;
+
 }

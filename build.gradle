@@ -73,6 +73,8 @@ dependencies {
     implementation group: 'com.google.auth', name: 'google-auth-library-oauth2-http', version: '1.23.0'
     implementation group: 'com.google.firebase', name: 'firebase-messaging', version: '22.0.0'
 
+    //mail
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 }
 
 tasks.named('test') {

@@ -36,7 +36,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                             "/swagger-ui/**",
                             "/v3/api-docs/**",
                             "/api-docs/**",
-                            "/error"
+                            "/error",
+                            "/images/**"
                     ));
 
     @Override
@@ -81,7 +82,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 "/v3/api-docs/**",
                 "/favicon.ico",
                 "/api-docs/**",
-                "/error");
+                "/error",
+                "images/**");
     }
 }
 

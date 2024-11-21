@@ -3,8 +3,10 @@ package com.gnu.mojadol.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gnu.mojadol.dto.*;
 import com.gnu.mojadol.entity.Board;
+import com.gnu.mojadol.entity.Photo;
 import com.gnu.mojadol.entity.User;
 import com.gnu.mojadol.repository.BoardRepository;
+import com.gnu.mojadol.repository.PhotoRepository;
 import com.gnu.mojadol.repository.UserRepository;
 import com.gnu.mojadol.service.BoardService;
 import com.gnu.mojadol.service.CommentService;
@@ -12,7 +14,9 @@ import com.gnu.mojadol.service.FCMService;
 import com.gnu.mojadol.service.PhotoService;
 import com.gnu.mojadol.service.impl.FCMServiceImpl;
 import com.gnu.mojadol.utils.JwtUtil;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -21,9 +25,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
-
+@CrossOrigin(origins ="*")
 @RestController
 @RequestMapping("/board")
 public class BoardController {
@@ -74,12 +84,14 @@ public class BoardController {
             boardMap.put("postDate", board.getPostDate());
             boardMap.put("memo", board.getMemo());
             boardMap.put("breedName", board.getBreed().getBreedName());
-            boardMap.put("location", board.getLocation().getProvince() + board.getLocation().getCity());
+            boardMap.put("location", board.getLocation().getProvince() + " " + board.getLocation().getCity());
+            boardMap.put("photo", "http://10.0.2.2:3000/images/uploads/" + board.getPhoto().get(0).getFilePath());
+
             responseMap.add(boardMap);
         }
 
         Map<String, Object> map = new HashMap<>();
-        map.put("content", content);
+        map.put("content", responseMap);
         map.put("pagination", Map.of(
                 "totalPages", response.getTotalPages(),
                 "totalElements", response.getTotalElements(),
@@ -87,11 +99,13 @@ public class BoardController {
                 "pageSize", response.getSize()
         ));
 
+        System.out.println(map);
+
         return ResponseEntity.ok(map);
     }
     // Board 글쓰기
     @PostMapping("/write")
-    public ResponseEntity<String> write(@RequestParam(value = "file") MultipartFile file,
+    public ResponseEntity<String> write(@RequestParam(value = "file") List<MultipartFile> file,
                                         @ModelAttribute("data") String data,
                                         @RequestHeader("Authorization") String accessToken) {
         System.out.println("BaordController write" + new Date());
@@ -116,14 +130,20 @@ public class BoardController {
                             .body("디렉토리 생성에 실패했습니다.");
                 }
             }
+            for (MultipartFile multipartFile : file) {
+                String originalFilename = multipartFile.getOriginalFilename();
+                String extension = originalFilename != null && originalFilename.contains(".") ?
+                        originalFilename.substring(originalFilename.lastIndexOf(".")) : "";
+                String filePath = UUID.randomUUID().toString() + extension;
+                String path = directoryPath + filePath;
 
-            String filePath = directoryPath + file.getOriginalFilename();
-            file.transferTo(new File(filePath));
+                multipartFile.transferTo(new File(path));
 
-            PhotoRequestDto photoRequestDto = new PhotoRequestDto();
-            photoRequestDto.setFilePath(filePath); // Set file path in PhotoRequestDto
-            photoRequestDto.setBoardSeq(boardResponseDto.getBoardSeq());
-            PhotoResponseDto responseDto = photoService.savePhoto(photoRequestDto);
+                PhotoRequestDto photoRequestDto = new PhotoRequestDto();
+                photoRequestDto.setFilePath(filePath);
+                photoRequestDto.setBoardSeq(boardResponseDto.getBoardSeq());
+                photoService.savePhoto(photoRequestDto);
+            }
 
             if (boardRequestDto.getReport() == 1) {
                 List<BoardUserSeqAndDogNameDto> boards = boardRepository.findUserSeqByBreedName(boardRequestDto.getBreedName());
@@ -148,14 +168,51 @@ public class BoardController {
 
     // Board 글수정
     @PostMapping("/update")
-    public ResponseEntity<?> update(@RequestBody BoardRequestDto boardRequestDto, @RequestHeader("Authorization") String accessToken) {
+    public ResponseEntity<?> update(@ModelAttribute("data") String data,
+                                    @RequestHeader("Authorization") String accessToken,
+                                    @RequestParam(value = "file") List<MultipartFile> file) {
         System.out.println("BoardController update" + new Date());
-        String userId = jwtUtil.extractUsername(accessToken);
-        User user = userRepository.findByUserId(userId);
-        boardRequestDto.setUserSeq(user.getUserSeq());
-        BoardResponseDto responseDto = boardService.updateBoard(boardRequestDto);
+        if (file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("파일을 반드시 업로드해야 합니다.");
+        }
+        try {
+            System.out.println(data);
+            // json형식의 data dto에 매핑
+            ObjectMapper objectMapper = new ObjectMapper();
+            BoardRequestDto boardRequestDto = objectMapper.readValue(data, BoardRequestDto.class);
+            // 토큰에서 id추출
+            String userId = jwtUtil.extractUsername(accessToken);
+            User user = userRepository.findByUserId(userId);
+            boardRequestDto.setUserSeq(user.getUserSeq());
+            // 게시글 업데이트
+            BoardResponseDto boardResponseDto = boardService.updateBoard(boardRequestDto);
+            // 사진 flag 1로 변경
+            photoService.deletePhoto(boardResponseDto.getBoardSeq());
 
-        return ResponseEntity.ok(responseDto);
+            String directoryPath = "/Users/byeongyeongtae/uploads/";
+
+            // 사진 저장
+            for (MultipartFile multipartFile : file) {
+                String originalFilename = multipartFile.getOriginalFilename();
+                String extension = originalFilename != null && originalFilename.contains(".") ?
+                        originalFilename.substring(originalFilename.lastIndexOf(".")) : "";
+                String filePath = UUID.randomUUID().toString() + extension;
+                String path = directoryPath + filePath;
+
+                multipartFile.transferTo(new File(path));
+
+                PhotoRequestDto photoRequestDto = new PhotoRequestDto();
+                photoRequestDto.setFilePath(filePath);
+                photoRequestDto.setBoardSeq(boardResponseDto.getBoardSeq());
+                photoService.savePhoto(photoRequestDto);
+            }
+
+            return ResponseEntity.ok("YES");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("File upload failed: " + e.getMessage());
+        }
     }
 
     @GetMapping("/boardDetail")
@@ -168,6 +225,11 @@ public class BoardController {
 
         Map<String, Object> responseMap = new HashMap<>();
 
+        List<String> url = new ArrayList<>();
+        for (String photo :responseDto.getPhotos()) {
+            url.add("http://10.0.2.2:3000/images/uploads/" + photo);
+        }
+        responseDto.setPhotos(url);
         responseMap.put("boardDetail", responseDto);
         responseMap.put("comments", commentResponseDtos);
 

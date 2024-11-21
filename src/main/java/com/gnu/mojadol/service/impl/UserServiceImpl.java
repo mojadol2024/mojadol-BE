@@ -46,6 +46,7 @@ public class UserServiceImpl implements UserService {
         user.setRegiDate(dateString);
         user.setNickname(dto.getNickName());
         user.setUserPw(passwordEncoder.encode(dto.getUserPw()));
+        user.setMail(dto.getMail());
         userRepository.save(user);
         // ResponseDto 생성 후 반환
         UserResponseDto response = new UserResponseDto();
@@ -55,6 +56,17 @@ public class UserServiceImpl implements UserService {
         response.setSuccess(true);
 
         return response;
+    }
+
+    @Override
+    public void updatePassword(UserRequestDto userRequestDto) {
+
+        User user = userRepository.findByUserIdAndMail(userRequestDto.getUserId(), userRequestDto.getMail());
+
+        user.setUserPw(passwordEncoder.encode(userRequestDto.getUserPw()));
+
+        userRepository.save(user);
+
     }
 
 

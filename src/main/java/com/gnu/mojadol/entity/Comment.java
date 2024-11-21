@@ -26,11 +26,10 @@ public class Comment {
     private User user;  // USER 외래 키
 
     @Column(columnDefinition = "TINYINT DEFAULT 0")
-    private int deletedFlag;  // 삭제 여부
+    private int deletedFlag = 0;  // 삭제 여부
 
-    @ManyToOne
     @JoinColumn(name = "parent_comment_seq", referencedColumnName = "comment_seq")
-    private Comment parentComment;  // 자기참조 외래 키
+    private Integer parentCommentSeq;
 
     @Column(nullable = false, name = "comment_text")
     private String commentText;

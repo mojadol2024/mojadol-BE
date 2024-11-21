@@ -2,15 +2,14 @@ package com.gnu.mojadol.service.impl;
 
 import com.gnu.mojadol.dto.BoardRequestDto;
 import com.gnu.mojadol.dto.BoardResponseDto;
-import com.gnu.mojadol.entity.Board;
-import com.gnu.mojadol.entity.Breed;
-import com.gnu.mojadol.entity.Location;
-import com.gnu.mojadol.entity.User;
-import com.gnu.mojadol.repository.BoardRepository;
-import com.gnu.mojadol.repository.BreedRepository;
-import com.gnu.mojadol.repository.LocationRepository;
-import com.gnu.mojadol.repository.UserRepository;
+import com.gnu.mojadol.dto.CommentResponseDto;
+import com.gnu.mojadol.entity.*;
+import com.gnu.mojadol.repository.*;
 import com.gnu.mojadol.service.BoardService;
+import com.gnu.mojadol.service.PhotoService;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,7 +18,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,6 +40,8 @@ public class BoardServiceImpl implements BoardService {
     @Autowired
     private LocationRepository locationRepository;
 
+    @Autowired
+    private PhotoRepository photoRepository;
 
     public BoardResponseDto writeBoard(BoardRequestDto boardRequestDto) {
         User user = null;
@@ -64,31 +67,15 @@ public class BoardServiceImpl implements BoardService {
         newLocation.setDistrict(boardRequestDto.getDistrict());
         locationRepository.save(newLocation);
 
-        Board board = new Board();
-        board.setDogName(boardRequestDto.getDogName());
-        board.setDogAge(boardRequestDto.getDogAge());
-        board.setDogGender(boardRequestDto.getDogGender());
-        board.setDogWeight(boardRequestDto.getDogWeight());
-        board.setLostDate(boardRequestDto.getLostDate());
+        Board board = setBoard(boardRequestDto);
         board.setPostDate(dateString);
-        board.setMemo(boardRequestDto.getMemo());
         board.setBreed(breed);
         board.setUser(user);
         board.setLocation(newLocation);
 
         Board savedBoard = boardRepository.save(board);
 
-        BoardResponseDto responseDto = new BoardResponseDto();
-        responseDto.setBoardSeq(savedBoard.getBoardSeq());
-        responseDto.setDogName(savedBoard.getDogName());
-        responseDto.setDogAge(savedBoard.getDogAge());
-        responseDto.setDogGender(savedBoard.getDogGender());
-        responseDto.setDogWeight(savedBoard.getDogWeight());
-        responseDto.setLostDate(savedBoard.getLostDate());
-        responseDto.setPostDate(savedBoard.getPostDate());
-        responseDto.setMemo(savedBoard.getMemo());
-
-        return responseDto;
+        return setBoardResponseDto(savedBoard);
     }
     // 견종 or 개이름 까지는 완성  위치 검색을 논의 해봐야 할듯 어떻게 값이 들어오게 할건지 의논해야함
     public Page<Board> listBoard(int page, int size, String breedName, String dogName, String location) {
@@ -113,7 +100,12 @@ public class BoardServiceImpl implements BoardService {
                     criteriaBuilder.like(root.get("location"), "%" + location + "%"));
         }
 
-        Page<Board> boards = boardRepository.findAll(spec, pageable);
+        spec = spec.and((root, query, criteriaBuilder) -> {
+            Join<Object, Object> photos = root.join("photo", JoinType.LEFT);
+            return criteriaBuilder.equal(photos.get("deletedFlag"), 0);
+        });
+
+        Page<Board> boards = boardRepository.findBoards(spec, pageable);
 
         return boards;
     }
@@ -147,15 +139,8 @@ public class BoardServiceImpl implements BoardService {
 
             Board updatedBoard = boardRepository.save(board);
 
-            BoardResponseDto boardResponseDto = new BoardResponseDto();
+            BoardResponseDto boardResponseDto = setBoardResponseDto(updatedBoard);
 
-            boardResponseDto.setBoardSeq(updatedBoard.getBoardSeq());
-            boardResponseDto.setDogName(updatedBoard.getDogName());
-            boardResponseDto.setDogAge(updatedBoard.getDogAge());
-            boardResponseDto.setDogGender(updatedBoard.getDogGender());
-            boardResponseDto.setDogWeight(updatedBoard.getDogWeight());
-            boardResponseDto.setLostDate(updatedBoard.getLostDate());
-            boardResponseDto.setMemo(updatedBoard.getMemo());
             boardResponseDto.setBreedName(updatedBoard.getBreed().getBreedName());
             boardResponseDto.setUserSeq(boardRequestDto.getUserSeq());
             boardResponseDto.setPostDate(dateString);
@@ -173,6 +158,15 @@ public class BoardServiceImpl implements BoardService {
 
             User user = userRepository.findByUserSeq(board.getUser().getUserSeq());
 
+            Location location = locationRepository.findById(board.getLocation().getLocationSeq())
+                    .orElseThrow(() -> new IllegalArgumentException("위치 정보가 존재하지 않습니다."));
+
+            List<Photo> photos = photoRepository.findByBoard_BoardSeq(boardSeq);
+            List<String> urls = new ArrayList<>();
+            for (Photo photo : photos){
+                urls.add(photo.getFilePath());
+            }
+
             BoardResponseDto responseDto = new BoardResponseDto();
             responseDto.setNickName(user.getNickname());
             responseDto.setUserSeq(user.getUserSeq());
@@ -186,7 +180,8 @@ public class BoardServiceImpl implements BoardService {
             responseDto.setLostDate(board.getLostDate());
             responseDto.setPostDate(board.getPostDate());
             responseDto.setBreedName(board.getBreed().getBreedName());
-
+            responseDto.setLocation(location.getProvince() + " " + location.getCity() + " " + location.getDistrict());
+            responseDto.setPhotos(urls);
 
             return responseDto;
         }
@@ -208,6 +203,33 @@ public class BoardServiceImpl implements BoardService {
         }
         throw new IllegalArgumentException("존재하지 않는 게시글입니다.");
     }
+
+    private static Board setBoard(BoardRequestDto boardRequestDto) {
+        Board board = new Board();
+        board.setDogName(boardRequestDto.getDogName());
+        board.setDogAge(boardRequestDto.getDogAge());
+        board.setDogGender(boardRequestDto.getDogGender());
+        board.setDogWeight(boardRequestDto.getDogWeight());
+        board.setLostDate(boardRequestDto.getLostDate());
+        board.setMemo(boardRequestDto.getMemo());
+
+        return board;
+    }
+
+    private static BoardResponseDto setBoardResponseDto(Board board) {
+        BoardResponseDto responseDto = new BoardResponseDto();
+        responseDto.setBoardSeq(board.getBoardSeq());
+        responseDto.setDogName(board.getDogName());
+        responseDto.setDogAge(board.getDogAge());
+        responseDto.setDogGender(board.getDogGender());
+        responseDto.setDogWeight(board.getDogWeight());
+        responseDto.setLostDate(board.getLostDate());
+        responseDto.setPostDate(board.getPostDate());
+        responseDto.setMemo(board.getMemo());
+
+        return responseDto;
+    }
+
 
 /*
     // 시군 까지 받기

@@ -1,6 +1,9 @@
 package com.gnu.mojadol.dto;
 
+import com.gnu.mojadol.entity.Photo;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class BoardResponseDto {
@@ -18,4 +21,5 @@ public class BoardResponseDto {
     private int userSeq;        // 사용자 ID (USER 테이블의 외래 키)
     private String nickName;
     private String location;
+    private List<String> photos;
 }

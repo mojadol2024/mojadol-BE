@@ -2,6 +2,9 @@ package com.gnu.mojadol.repository;
 
 import com.gnu.mojadol.dto.BoardUserSeqAndDogNameDto;
 import com.gnu.mojadol.entity.Board;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -16,5 +19,9 @@ public interface BoardRepository extends JpaRepository<Board, Integer>, JpaSpeci
     @Query("SELECT new com.gnu.mojadol.dto.BoardUserSeqAndDogNameDto(b.user.userSeq, b.dogName) " +
             "FROM Board b WHERE b.breed.breedName = :breedName and b.report = 0")
     List<BoardUserSeqAndDogNameDto> findUserSeqByBreedName(@Param("breedName")String breedName);
+
+    @Query(value = "SELECT * FROM board b WHERE b.report != 2", nativeQuery = true)
+    Page<Board> findBoards(Specification spec, Pageable pageable);
+
 
 }

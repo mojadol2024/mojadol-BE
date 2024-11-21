@@ -33,8 +33,6 @@ public class CommentServiceImpl implements CommentService {
 
     // 1. 댓글 작성
     public CommentResponseDto addComment(CommentRequestDto commentRequestDto) {
-        // 로그 추가: addComment 메소드의 초기 입력값을 확인
-        System.out.println("Adding comment to boardSeq: " + commentRequestDto.getBoardSeq());
         User user = null;
         Board board = null;
         if (commentRequestDto != null) {
@@ -71,10 +69,10 @@ public class CommentServiceImpl implements CommentService {
         commentResponseDto.setCommentText(saved.getCommentText());
         commentResponseDto.setBoardSeq(saved.getBoard().getBoardSeq());
         commentResponseDto.setCreatedAt(saved.getCreatedAt());
-        if (saved.getParentComment() != null) {
-            commentResponseDto.setParentCommentSeq(saved.getParentComment().getCommentSeq());
-        } else {
-            commentResponseDto.setParentCommentSeq(0);
+        if (saved.getParentCommentSeq() != null) {
+            commentResponseDto.setParentCommentSeq(saved.getParentCommentSeq());
+        }else {
+            commentResponseDto.setParentCommentSeq(null);  // 부모 댓글이 없으면 null로 처리
         }
         commentResponseDto.setDeletedFlag(saved.getDeletedFlag());
         commentResponseDto.setNickName(saved.getUser().getNickname());
@@ -87,12 +85,21 @@ public class CommentServiceImpl implements CommentService {
                 .stream()
                 .filter(comment -> comment.getDeletedFlag() == 0) // 삭제되지 않은 댓글만
                 .toList();
+
         return comments.stream().map(comment -> {
             CommentResponseDto dto = new CommentResponseDto();
             dto.setCommentSeq(comment.getCommentSeq());
             dto.setCommentText(comment.getCommentText());
             dto.setBoardSeq(comment.getBoard().getBoardSeq());
-            dto.setUserSeq(comment.getUser().getUserSeq()); // 작성자 ID 추가
+            dto.setUserSeq(comment.getUser().getUserSeq());
+            dto.setNickName(comment.getUser().getNickname());
+            if (comment.getParentCommentSeq() != null) {
+                dto.setParentCommentSeq(comment.getParentCommentSeq());
+            } else {
+                dto.setParentCommentSeq(null);  // 부모 댓글이 없으면 null로 처리
+            }
+            dto.setCreatedAt(comment.getCreatedAt());
+            dto.setUpdatedAt(comment.getUpdatedAt());
             return dto;
         }).collect(Collectors.toList());
     }
@@ -124,6 +131,39 @@ public class CommentServiceImpl implements CommentService {
         commentRepository.save(comment);
     }
 
+    //답글작성
+    public CommentResponseDto reply(CommentRequestDto commentRequestDto) {
+        User user = null;
+        Board board = null;
+        if (commentRequestDto != null) {
+            user = userRepository.findByUserSeq(commentRequestDto.getUserSeq());
+            board = boardRepository.findByBoardSeq(commentRequestDto.getBoardSeq());
+
+            if (board == null) {
+                throw new IllegalArgumentException("게시글을 찾을 수 없습니다."); // 예외 처리
+            }
+
+            if (user == null) {
+                throw new IllegalArgumentException("사용자를 찾을 수 없습니다."); // 예외 처리
+            }
+        }
+        Date date = new Date();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String dateString = dateFormat.format(date);
+
+        Comment comment = new Comment();
+        comment.setCommentText(commentRequestDto.getCommentText());
+        comment.setBoard(board);
+        comment.setUser(user);
+        comment.setParentCommentSeq(commentRequestDto.getParentCommentSeq());
+        comment.setCreatedAt(dateString); // 현재 시간 설정
+
+        Comment saved = commentRepository.save(comment);
+
+        return getCommentResponseDto(saved);
+
+    }
+
     /*
     // 5. 특정 댓글 조회
     @Override
@@ -138,14 +178,6 @@ public class CommentServiceImpl implements CommentService {
 
         return responseDto;
     }
-
-    위치 3 종류
-    실종신고 : 드롭다운 바 시까지 / 상세주소
-    사진찍기 : api로 사진 찍고 게시글작성하면 현재위치를 가져오는 (드롭다운 바 시까지) / 상세주소
-    검색 : 드롭다운 바 시까지
-    location변수 / headers = 3개로 나누어서 받기 / headers or param = 1개로 주면 백엔드에서 분리해서 저장 /
-    db 2가지 = 도 / 시 / 상세
-
     */
 }
 
