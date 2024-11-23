@@ -1,73 +1,63 @@
 package com.gnu.mojadol.service.impl;
 
-import com.gnu.mojadol.dto.MyPageActivityDto;
-import com.gnu.mojadol.entity.MyPageActivity;
-import com.gnu.mojadol.repository.MyPageActivityRepository;
+import com.gnu.mojadol.dto.UserRequestDto;
+import com.gnu.mojadol.entity.Board;
+import com.gnu.mojadol.entity.User;
+import com.gnu.mojadol.repository.BoardRepository;
+import com.gnu.mojadol.repository.CommentRepository;
+import com.gnu.mojadol.repository.UserRepository;
 import com.gnu.mojadol.service.MyPageActivityService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class MyPageActivityServiceImpl implements MyPageActivityService {
 
-    private final MyPageActivityRepository myPageActivityRepository;
+    @Autowired
+    private BoardRepository boardRepository;
 
-    public MyPageActivityServiceImpl(MyPageActivityRepository myPageActivityRepository) {
-        this.myPageActivityRepository = myPageActivityRepository;
+    @Autowired
+    private CommentRepository commentRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    public Page<Board> myBoardList(int userSeq, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        return boardRepository.findByUserSeqAndReportNot(userSeq, pageable);
     }
 
-    @Override
-    public Page<MyPageActivityDto> getUserActivities(int userSeq, Pageable pageable) {
-        return myPageActivityRepository.findByUser_UserSeq(userSeq, pageable)
-                .map(this::toDto);
+    public Page<Board> myCommentList(int userSeq, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        return commentRepository.findBoardsByUserSeq(userSeq, pageable);
     }
 
-    @Override
-    public Page<MyPageActivityDto> getUserPosts(int userSeq, Pageable pageable) {
-        return myPageActivityRepository.findByUser_UserSeqAndActivityType(userSeq, "POST", pageable)
-                .map(this::toDto);
-    }
+    public void updateUser(UserRequestDto userRequestDto) {
+        User user = userRepository.findByUserId(userRequestDto.getUserId());
 
-    @Override
-    public Page<MyPageActivityDto> getUserComments(int userSeq, Pageable pageable) {
-        return myPageActivityRepository.findByUser_UserSeqAndActivityType(userSeq, "COMMENT", pageable)
-                .map(this::toDto);
-    }
-
-    @Override
-    public void deleteUserActivity(Long activityId) {
-        Optional<MyPageActivity> activityOptional = myPageActivityRepository.findById(activityId);
-        if (activityOptional.isPresent()) {
-            MyPageActivity activity = activityOptional.get();
-            activity.setDeletedFlag(1); // 논리 삭제
-            myPageActivityRepository.save(activity);
-        } else {
-            throw new IllegalArgumentException("Invalid activity ID: " + activityId);
+        if (userRequestDto.getUserPw() != null) {
+            user.setUserPw(passwordEncoder.encode(userRequestDto.getUserPw()));
         }
+        if (userRequestDto.getNickName() != null) {
+            user.setNickname(userRequestDto.getNickName());
+        }
+        if (userRequestDto.getMail() != null) {
+            user.setMail(userRequestDto.getMail());
+        }
+        userRepository.save(user);
     }
 
-    @Override
-    public MyPageActivityDto getActivityDetail(Long activityId) {
-        MyPageActivity activity = myPageActivityRepository.findById(activityId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid activity ID: " + activityId));
-        return toDto(activity);
-    }
 
-    private MyPageActivityDto toDto(MyPageActivity activity) {
-        return new MyPageActivityDto(
-                activity.getBoard().getBoardSeq(),
-                activity.getUser().getUserSeq(),
-                activity.getDogName(),
-                activity.getBreedName(),
-                activity.getLostDate(),
-                activity.getCreatedAt(),
-                activity.getUpdatedAt(),
-                activity.getActivityType(),
-                activity.getParentBoardSeq() != null ? activity.getParentBoardSeq().getBoardSeq() : 0,
-                activity.getDeletedFlag()
-        );
-    }
+
+
+
 }

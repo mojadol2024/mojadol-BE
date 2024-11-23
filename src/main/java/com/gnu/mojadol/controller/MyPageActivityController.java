@@ -1,19 +1,20 @@
 package com.gnu.mojadol.controller;
 
-import com.gnu.mojadol.dto.CommentResponseDto;
-import com.gnu.mojadol.dto.MyPageActivityDto;
+import com.gnu.mojadol.config.SecurityConfig;
+import com.gnu.mojadol.dto.UserRequestDto;
+import com.gnu.mojadol.entity.Board;
 import com.gnu.mojadol.entity.User;
 import com.gnu.mojadol.repository.UserRepository;
 import com.gnu.mojadol.service.MyPageActivityService;
 import com.gnu.mojadol.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
+import java.util.*;
 
 @RestController
 @RequestMapping("/myActivity")
@@ -23,107 +24,164 @@ public class MyPageActivityController {
     private JwtUtil jwtUtil;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private MyPageActivityService myPageActivityService;
 
     @Autowired
-    private UserRepository userRepository;
+    private PasswordEncoder passwordEncoder;
 
-    // 사용자 인증 메서드
-    private User authenticateUser(String accessToken, int userSeq) {
-        String userId = jwtUtil.extractUsername(accessToken);
-        User user = userRepository.findByUserId(userId);
-        if (user == null || user.getUserSeq() != userSeq) {
-            return null;
-        }
-        return user;
-    }
+    @GetMapping("/myBoardList")
+    public ResponseEntity<?> myBoardList(@RequestParam(defaultValue = "0") int page,
+                                         @RequestParam(defaultValue = "10") int size,
+                                         @RequestHeader("Authorization") String accessToken){
+        System.out.println("MyPageActivityController myBoardList" + new Date());
 
-    // 사용자 전체 활동 조회
-    @PostMapping("/allList")
-    public ResponseEntity<Page<MyPageActivityDto>> getUserActivities(@RequestBody MyPageActivityDto requestDto, Pageable pageable, @RequestHeader("Authorization") String accessToken) {
-        System.out.println("MyPageActivityController checkList " + new Date());
-
-        // 사용자 인증
-        User user = authenticateUser(accessToken, requestDto.getUserSeq());
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        // 서비스에서 사용자 활동을 조회합니다
-        Page<MyPageActivityDto> activities = myPageActivityService.getUserActivities(requestDto.getUserSeq(), pageable);
-        return ResponseEntity.ok(activities);
-    }
-
-    // 사용자 게시글 조회
-    @PostMapping("/posts")
-    public ResponseEntity<Page<MyPageActivityDto>> getUserPosts(@RequestBody MyPageActivityDto requestDto, Pageable pageable, @RequestHeader("Authorization") String accessToken) {
-        // 사용자 인증
-        User user = authenticateUser(accessToken, requestDto.getUserSeq());
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        // 서비스에서 사용자 게시글을 조회합니다
-        Page<MyPageActivityDto> posts = myPageActivityService.getUserPosts(requestDto.getUserSeq(), pageable);
-        return ResponseEntity.ok(posts);
-    }
-
-    // 사용자 댓글 조회
-    @PostMapping("/comments")
-    public ResponseEntity<Page<MyPageActivityDto>> getUserComments(@RequestBody MyPageActivityDto requestDto, Pageable pageable, @RequestHeader("Authorization") String accessToken) {
-        // 사용자 인증
-        User user = authenticateUser(accessToken, requestDto.getUserSeq());
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        // 서비스에서 사용자 댓글을 조회합니다
-        Page<MyPageActivityDto> comments = myPageActivityService.getUserComments(requestDto.getUserSeq(), pageable);
-        return ResponseEntity.ok(comments);
-    }
-
-    // 특정 활동 삭제 (논리 삭제)
-    @PostMapping("/delete/{activityId}")
-    public ResponseEntity<String> deleteUserActivity(@PathVariable Long activityId, @RequestBody MyPageActivityDto requestDto, @RequestHeader("Authorization") String accessToken) {
-        System.out.println("MyPageActivityController deleteUserActivity " + new Date());
-
-        // 사용자 인증
-        User user = authenticateUser(accessToken, requestDto.getUserSeq());
-        MyPageActivityDto activity = myPageActivityService.getActivityDetail(activityId);
-        if (user == null || activity == null || activity.getUserSeq() != user.getUserSeq()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("권한이 없습니다.");
-        }
-
-        // 서비스에서 활동을 조회합니다
-        MyPageActivityDto retrievedActivity; // 변수 이름 변경
         try {
-            retrievedActivity = myPageActivityService.getActivityDetail(activityId);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("해당 활동을 찾을 수 없습니다.");
-        }
+            String userId = jwtUtil.extractUsername(accessToken);
+            User user = userRepository.findByUserId(userId);
 
-        // 활동 소유자 확인
-        if (retrievedActivity.getUserSeq() != user.getUserSeq()) { // 변수 이름 사용 시 혼동 없도록 수정
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("권한이 없습니다.");
-        }
+            Page<Board> response = myPageActivityService.myBoardList(user.getUserSeq(), page, size);
 
-        // 서비스에서 활동을 논리적으로 삭제합니다
-        myPageActivityService.deleteUserActivity(activityId);
-        return ResponseEntity.ok("YES");
+            List<Map<String, Object>> responseMap = new ArrayList<>();
+
+            List<Board> content = response.getContent();
+            for (Board board : content) {
+                Map<String, Object> boardMap = new HashMap<>();
+                // Board 객체의 값을 Map에 담기
+                boardMap.put("boardSeq", board.getBoardSeq());
+                boardMap.put("dogName", board.getDogName());
+                boardMap.put("dogAge", board.getDogAge());
+                boardMap.put("dogGender", board.getDogGender());
+                boardMap.put("dogWeight", board.getDogWeight());
+                boardMap.put("lostDate", board.getLostDate());
+                boardMap.put("postDate", board.getPostDate());
+                boardMap.put("memo", board.getMemo());
+                boardMap.put("breedName", board.getBreed().getBreedName());
+                boardMap.put("location", board.getLocation().getProvince() + " " + board.getLocation().getCity());
+                boardMap.put("photo", "http://10.0.2.2:3000/images/uploads/" + board.getPhoto().get(0).getFilePath());
+
+                responseMap.add(boardMap);
+            }
+
+            Map<String, Object> map = new HashMap<>();
+            map.put("content", responseMap);
+            map.put("pagination", Map.of(
+                    "totalPages", response.getTotalPages(),
+                    "totalElements", response.getTotalElements(),
+                    "currentPage", response.getNumber(),
+                    "pageSize", response.getSize()
+            ));
+
+            return ResponseEntity.ok(map);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("유저 정보가 없습니다.");
+        }
     }
 
-    // 특정 활동 상세 조회
-    @PostMapping("/detail/{activityId}")
-    public ResponseEntity<MyPageActivityDto> getActivityDetail(@PathVariable Long activityId, @RequestBody MyPageActivityDto requestDto, @RequestHeader("Authorization") String accessToken) {
-        System.out.println("MyPageActivityController getActivityDetail " + new Date());
+    @GetMapping("/myCommentList")
+    public ResponseEntity<?> myCommentList(@RequestParam(defaultValue = "0") int page,
+                                           @RequestParam(defaultValue = "10") int size,
+                                           @RequestHeader("Authorization") String accessToken) {
+        System.out.println("MyPageActivityController myCommentList" + new Date());
+        try {
+            String userId = jwtUtil.extractUsername(accessToken);
+            User user = userRepository.findByUserId(userId);
 
-        // 사용자 인증
-        User user = authenticateUser(accessToken, requestDto.getUserSeq());
-        MyPageActivityDto activityDetail = myPageActivityService.getActivityDetail(activityId);
-        if (user == null || activityDetail == null || activityDetail.getUserSeq() != user.getUserSeq()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            Page<Board> response = myPageActivityService.myCommentList(user.getUserSeq(), page, size);
+
+            List<Map<String, Object>> responseMap = new ArrayList<>();
+
+            List<Board> content = response.getContent();
+            for (Board board : content) {
+                Map<String, Object> boardMap = new HashMap<>();
+                // Board 객체의 값을 Map에 담기
+                boardMap.put("boardSeq", board.getBoardSeq());
+                boardMap.put("dogName", board.getDogName());
+                boardMap.put("dogAge", board.getDogAge());
+                boardMap.put("dogGender", board.getDogGender());
+                boardMap.put("dogWeight", board.getDogWeight());
+                boardMap.put("lostDate", board.getLostDate());
+                boardMap.put("postDate", board.getPostDate());
+                boardMap.put("memo", board.getMemo());
+                boardMap.put("breedName", board.getBreed().getBreedName());
+                boardMap.put("location", board.getLocation().getProvince() + " " + board.getLocation().getCity());
+                boardMap.put("photo", "http://10.0.2.2:3000/images/uploads/" + board.getPhoto().get(0).getFilePath());
+
+                responseMap.add(boardMap);
+            }
+
+            Map<String, Object> map = new HashMap<>();
+            map.put("content", responseMap);
+            map.put("pagination", Map.of(
+                    "totalPages", response.getTotalPages(),
+                    "totalElements", response.getTotalElements(),
+                    "currentPage", response.getNumber(),
+                    "pageSize", response.getSize()
+            ));
+
+            return ResponseEntity.ok(map);
+
+        } catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("유저 정보가 없습니다.");
         }
-
-        return ResponseEntity.ok(activityDetail);
     }
+
+    @PostMapping("/updateUser")
+    public ResponseEntity<String> updateUser(@RequestBody UserRequestDto userRequestDto) {
+        System.out.println("MyPageActivityController updateUser" + new Date());
+        try {
+            myPageActivityService.updateUser(userRequestDto);
+            return ResponseEntity.ok("YES");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("잘못된 접근 입니다.");
+        }
+    }
+
+    //내 정보 수정 전 비밀번호 확인
+    @PostMapping("/passwordCheck")
+    public ResponseEntity<?> passwordCheck(@RequestBody UserRequestDto userRequestDto, @RequestHeader("Authorization") String accessToken) {
+        System.out.println("MyPageActivityController passwordCheck" + new Date());
+        try{
+            String userId = jwtUtil.extractUsername(accessToken);
+            User user = userRepository.findByUserId(userId);
+
+            if (passwordEncoder.matches(userRequestDto.getUserPw(), user.getUserPw())) {
+                return ResponseEntity.ok("YES");
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호가 일치하지 않습니다.");
+            }
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("잘못된 접근 입니다.");
+        }
+    }
+
+    // 내정보 수정페이지 get으로 내정보 보여주기
+    @GetMapping("/userData")
+    public ResponseEntity<?> userDate(@RequestHeader("Authorization") String accessToken) {
+        System.out.println("MyPageActivityController userDate" + new Date());
+        try {
+            String userId = jwtUtil.extractUsername(accessToken);
+            User user = userRepository.findByUserId(userId);
+
+            UserRequestDto response = new UserRequestDto();
+
+            response.setUserId(user.getUserId());
+            response.setMail(user.getMail());
+            response.setUserName(user.getUsername());
+            response.setNickName(user.getNickname());
+            response.setPhoneNumber(user.getPhoneNumber());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("잘못된 접근 입니다.");
+        }
+    }
+
 }
