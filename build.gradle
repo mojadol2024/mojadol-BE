@@ -75,6 +75,12 @@ dependencies {
 
     //mail
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+    // ads
+    implementation 'com.google.api-ads:google-ads:22.0.0'
+
+    // bootpay
+    implementation 'io.github.bootpay:backend:+'
+
 }
 
 tasks.named('test') {
