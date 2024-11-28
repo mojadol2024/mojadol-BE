@@ -5,7 +5,7 @@
 <br>
 
 ## 🕰️ 개발 기간
-* 23.09.04일 - 현재
+* 23.09.11일 - 현재
 
 ### 🧑‍🤝‍🧑 멤버 구성
 - 고건민
@@ -24,7 +24,7 @@
 - **Database** : mysql 8.0, redis
 - **ORM** : JPA
 - **CI/CD** : dockerHub, GitHub Actions
-- **API** : Kakao Developers, firebase
+- **API** : Kakao Developers, firebase, bootPay
 
 ## 📌 주요 기능
 - 결제 기능
