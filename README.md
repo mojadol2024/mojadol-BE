@@ -19,7 +19,7 @@
 - `jwt 0.11.2`
 - `spring security 3.1.3`
 - `lombok`
-- **IDE** : STS 4.0
+- **IDE** : IntelliJ
 - **Framwork** : spring boot 3.1.3
 - **Database** : mysql 8.0, redis
 - **ORM** : JPA
@@ -27,7 +27,10 @@
 - **API** : Kakao Developers, firebase
 
 ## 📌 주요 기능
-#### 메인 페이지 - <a href=>상세보기 - WIKI 이동</a>
+- 결제 기능
+- 게시판 기능
+- 강아지 사진 개체 탐지 기능
+- 강아지 종 분류 기능
 
 #### 회원 페이지 - <a href=>상세보기 - WIKI 이동</a>
 - 로그인 O
