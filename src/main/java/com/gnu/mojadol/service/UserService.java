@@ -10,6 +10,7 @@ import java.util.List;
 
 public interface UserService {
     UserResponseDto addUser(UserRequestDto dto);
-
     void updatePassword(UserRequestDto dto);
+
+    String checkId(String userId);
 }

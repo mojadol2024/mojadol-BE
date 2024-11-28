@@ -38,7 +38,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.Random;
-
 @Tag(name = "인증", description = "토큰이 필요 없는 기능 API")
 @RestController
 @RequestMapping("/auth")
@@ -120,9 +119,13 @@ public class AuthController {
     @PostMapping("/addUser")
     public ResponseEntity<?> register(@RequestBody UserRequestDto userRequestDto) {
         System.out.println("AuthController register " + new Date());
-        userService.addUser(userRequestDto);
-        return ResponseEntity.ok("YES");
-
+        try {
+            userService.addUser(userRequestDto);
+            return ResponseEntity.ok("YES");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok("NO");
+        }
     }
 
     @GetMapping("/kakao/login")
@@ -280,7 +283,7 @@ public class AuthController {
                 message += "        <div class='content'>";
                 message += "            <p>안녕하세요, 회원님!</p>";
                 message += "            <p>추견 60분 본인 인증 번호입니다.</p>";
-                message += "            <p class='highlight'>" + verificationCode + "</p>";
+                message += "            <h4 class='highlight'>" + verificationCode + "</h4>";
                 message += "            <p>코드를 안전하게 보관하시고, 로그인 정보를 타인과 공유하지 마세요.</p>";
                 message += "        </div>";
                 message += "        <div class='footer'>이 메일은 발신 전용입니다. 문의 사항은 고객센터를 이용해 주세요.</div>";
@@ -328,6 +331,22 @@ public class AuthController {
             userService.updatePassword(userRequestDto);
 
             return ResponseEntity.ok("YES");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("잘못된 요청 입니다.");
+        }
+    }
+
+    @PostMapping("/checkId")
+    public ResponseEntity<?> checkId(@RequestBody String userId) {
+        System.out.println("AuthController checkId" + new Date());
+
+        try {
+            String check = userService.checkId(userId);
+
+            if (check == null) {
+                return ResponseEntity.ok("YES");
+            }
+            return ResponseEntity.ok("NO");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("잘못된 요청 입니다.");
         }

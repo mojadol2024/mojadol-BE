@@ -13,7 +13,7 @@ import java.util.List;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Integer> {
-    @Query("SELECT c FROM Comment c WHERE c.deletedFlag = 0 AND c.board.boardSeq = :boardSeq")
+    @Query("SELECT c FROM Comment c WHERE c.board.boardSeq = :boardSeq")
     List<Comment> findByBoard_BoardSeq(@Param("boardSeq") int boardSeq); // 특정 게시글에 대한 댓글 조회
     @Query("SELECT c.board FROM Comment c WHERE c.user.userSeq = :userSeq")
     Page<Board> findBoardsByUserSeq(@Param("userSeq") int userSeq, Pageable pageable);
