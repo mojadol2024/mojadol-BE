@@ -83,7 +83,6 @@ public class CommentServiceImpl implements CommentService {
     public List<CommentResponseDto> getCommentsByBoardSeq(int boardSeq) {
         List<Comment> comments = commentRepository.findByBoard_BoardSeq(boardSeq)
                 .stream()
-                .filter(comment -> comment.getDeletedFlag() == 0) // 삭제되지 않은 댓글만
                 .toList();
 
         return comments.stream().map(comment -> {
@@ -93,6 +92,7 @@ public class CommentServiceImpl implements CommentService {
             dto.setBoardSeq(comment.getBoard().getBoardSeq());
             dto.setUserSeq(comment.getUser().getUserSeq());
             dto.setNickName(comment.getUser().getNickname());
+            dto.setDeletedFlag(comment.getDeletedFlag());
             if (comment.getParentCommentSeq() != null) {
                 dto.setParentCommentSeq(comment.getParentCommentSeq());
             } else {

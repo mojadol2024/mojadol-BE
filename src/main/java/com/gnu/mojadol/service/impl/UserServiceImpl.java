@@ -66,7 +66,13 @@ public class UserServiceImpl implements UserService {
         user.setUserPw(passwordEncoder.encode(userRequestDto.getUserPw()));
 
         userRepository.save(user);
+    }
 
+    @Override
+    public String checkId(String userId) {
+        User user = userRepository.findByUserId(userId);
+
+        return user.getUserId();
     }
 
 
