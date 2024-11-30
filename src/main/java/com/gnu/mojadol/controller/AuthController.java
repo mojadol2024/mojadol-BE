@@ -337,21 +337,19 @@ public class AuthController {
     }
 
     @PostMapping("/checkId")
-    public ResponseEntity<?> checkId(@RequestBody String userId) {
+    public ResponseEntity<?> checkId(@RequestBody UserRequestDto userRequestDto) {
         System.out.println("AuthController checkId" + new Date());
 
         try {
-            String check = userService.checkId(userId);
-
-            if (check == null) {
+            String check = userService.checkId(userRequestDto.getUserId());
+            if (check.isEmpty()) {
                 return ResponseEntity.ok("YES");
             }
             return ResponseEntity.ok("NO");
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("잘못된 요청 입니다.");
         }
     }
-
-
 }
 
