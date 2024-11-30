@@ -6,6 +6,8 @@ import com.gnu.mojadol.repository.UserRepository;
 import com.gnu.mojadol.service.FCMService;
 import com.gnu.mojadol.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,16 +26,15 @@ public class FCMController {
     private UserRepository userRepository;
 
     @PostMapping("/save")
-    public String sendNotification(@RequestBody NotificationRequestDto request) {
+    public ResponseEntity<?> sendNotification(@RequestBody NotificationRequestDto request) {
         System.out.println("FCMController save" + new Date());
         try {
             User user = userRepository.findByUserId(request.getUserId());
-
             fcmService.saveToken(user.getUserSeq(), request.getToken());
 
-            return "Notification sent successfully";
+            return ResponseEntity.ok("YES");
         } catch (Exception e) {
-            return "Failed to send notification: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("NO");
         }
     }
 }

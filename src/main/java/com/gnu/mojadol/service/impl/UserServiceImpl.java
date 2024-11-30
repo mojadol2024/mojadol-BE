@@ -35,6 +35,7 @@ public class UserServiceImpl implements UserService {
 
         Date date = new Date();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String formattedPhoneNumber = formatPhoneNumber(dto.getPhoneNumber());
 
         // 날짜를 문자열로 변환
         String dateString = dateFormat.format(date);
@@ -42,7 +43,7 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setUserId(dto.getUserId());
         user.setUserName(dto.getUserName());
-        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setPhoneNumber(formattedPhoneNumber);
         user.setRegiDate(dateString);
         user.setNickname(dto.getNickName());
         user.setUserPw(passwordEncoder.encode(dto.getUserPw()));
@@ -70,9 +71,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String checkId(String userId) {
+        System.out.println(userId);
         User user = userRepository.findByUserId(userId);
+        System.out.println(user);
 
-        return user.getUserId();
+        return (user != null) ? user.getUserId() : "";
+    }
+
+    private String formatPhoneNumber(String phoneNumber) {
+        if (phoneNumber == null || phoneNumber.length() != 11) {
+            throw new IllegalArgumentException("formatPhoneNumber error");
+        }
+        return phoneNumber.replaceAll("(\\d{3})(\\d{4})(\\d{4})", "$1-$2-$3");
     }
 
 

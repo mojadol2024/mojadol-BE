@@ -14,13 +14,4 @@ public class AppConfig implements WebMvcConfigurer {
                 .addResourceLocations("file:/Users/byeongyeongtae/uploads/");
     }
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("*")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
-    }
-
 }

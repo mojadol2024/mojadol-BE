@@ -33,7 +33,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-@CrossOrigin(origins ="*")
 @RestController
 @RequestMapping("/board")
 public class BoardController {
@@ -216,7 +215,7 @@ public class BoardController {
     }
 
     @GetMapping("/boardDetail")
-    public ResponseEntity<?> boardDetail(@RequestParam int boardSeq) {
+    public ResponseEntity<?> boardDetail(@RequestParam int boardSeq, @RequestHeader("Authorization") String accessToken) {
         System.out.println("BoardController boardDetail" + new Date());
 
         List<CommentResponseDto> commentResponseDtos = commentService.getCommentsByBoardSeq(boardSeq);

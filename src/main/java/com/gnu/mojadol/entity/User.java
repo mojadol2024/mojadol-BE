@@ -76,7 +76,4 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true; // 계정 활성 여부
     }
-
-
-
 }

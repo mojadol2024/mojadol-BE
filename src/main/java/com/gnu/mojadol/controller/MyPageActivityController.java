@@ -74,6 +74,10 @@ public class MyPageActivityController {
                     "pageSize", response.getSize()
             ));
 
+            System.out.println(response.getTotalPages());
+            System.out.println(response.getSize());
+            System.out.println(response.getPageable());
+
             return ResponseEntity.ok(map);
         } catch (Exception e) {
             e.printStackTrace();
