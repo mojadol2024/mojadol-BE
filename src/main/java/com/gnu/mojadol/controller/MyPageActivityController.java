@@ -37,7 +37,7 @@ public class MyPageActivityController {
                                          @RequestParam(defaultValue = "10") int size,
                                          @RequestHeader("Authorization") String accessToken){
         System.out.println("MyPageActivityController myBoardList" + new Date());
-
+        System.out.println(page);
         try {
             String userId = jwtUtil.extractUsername(accessToken);
             User user = userRepository.findByUserId(userId);
@@ -74,15 +74,13 @@ public class MyPageActivityController {
                     "pageSize", response.getSize()
             ));
 
-            System.out.println(response.getTotalPages());
-            System.out.println(response.getSize());
-            System.out.println(response.getPageable());
+            System.out.println(map);
 
             return ResponseEntity.ok(map);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("유저 정보가 없습니다.");
+                    .body("NO");
         }
     }
 
@@ -132,7 +130,7 @@ public class MyPageActivityController {
         } catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("유저 정보가 없습니다.");
+                    .body("NO");
         }
     }
 
@@ -144,7 +142,7 @@ public class MyPageActivityController {
             return ResponseEntity.ok("YES");
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("잘못된 접근 입니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("NO");
         }
     }
 
@@ -155,14 +153,14 @@ public class MyPageActivityController {
         try{
             String userId = jwtUtil.extractUsername(accessToken);
             User user = userRepository.findByUserId(userId);
-
+            System.out.println(userRequestDto.getUserPw());
             if (passwordEncoder.matches(userRequestDto.getUserPw(), user.getUserPw())) {
                 return ResponseEntity.ok("YES");
             } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호가 일치하지 않습니다.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("NO");
             }
         }catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("잘못된 접근 입니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("NO");
         }
     }
 
@@ -184,7 +182,7 @@ public class MyPageActivityController {
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("잘못된 접근 입니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("NO");
         }
     }
 

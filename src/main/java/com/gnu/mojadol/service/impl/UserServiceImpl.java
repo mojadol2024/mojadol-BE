@@ -78,6 +78,15 @@ public class UserServiceImpl implements UserService {
         return (user != null) ? user.getUserId() : "";
     }
 
+    @Override
+    public String checkMail(String mail) {
+        System.out.println(mail);
+        User user = userRepository.findByMail(mail);
+        System.out.println(user);
+
+        return (user != null) ? user.getMail() : "";
+    }
+
     private String formatPhoneNumber(String phoneNumber) {
         if (phoneNumber == null || phoneNumber.length() != 11) {
             throw new IllegalArgumentException("formatPhoneNumber error");

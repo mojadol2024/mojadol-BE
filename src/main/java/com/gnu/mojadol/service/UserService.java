@@ -12,4 +12,6 @@ public interface UserService {
     UserResponseDto addUser(UserRequestDto dto);
     void updatePassword(UserRequestDto dto);
     String checkId(String userId);
+
+    String checkMail(String mail);
 }
