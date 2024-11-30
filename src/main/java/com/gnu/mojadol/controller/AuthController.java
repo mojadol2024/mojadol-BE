@@ -351,5 +351,21 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("잘못된 요청 입니다.");
         }
     }
+
+    @PostMapping("/checkMail")
+    public ResponseEntity<?> checkMail(@RequestBody UserRequestDto userRequestDto) {
+        System.out.println("AuthController checkId" + new Date());
+
+        try {
+            String check = userService.checkMail(userRequestDto.getMail());
+            if (check.isEmpty()) {
+                return ResponseEntity.ok("YES");
+            }
+            return ResponseEntity.ok("NO");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("잘못된 요청 입니다.");
+        }
+    }
 }
 
