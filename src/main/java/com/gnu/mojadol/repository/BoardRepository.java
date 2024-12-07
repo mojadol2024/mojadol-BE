@@ -20,8 +20,22 @@ public interface BoardRepository extends JpaRepository<Board, Integer>, JpaSpeci
             "FROM Board b WHERE b.breed.breedName = :breedName and b.report = 0")
     List<BoardUserSeqAndDogNameDto> findUserSeqByBreedName(@Param("breedName")String breedName);
 
-    @Query(value = "SELECT distinct b FROM Board b WHERE b.report != 2 order by b.postDate desc ")
-    Page<Board> findBoards(Specification spec, Pageable pageable);
+    @Query("SELECT b FROM Board b " +
+            "JOIN b.breed br " +
+            "JOIN b.location loc " +
+            "WHERE b.report != 2 " +
+            "AND (:breedName IS NULL OR br.breedName LIKE %:breedName%) " +
+            "AND (:province IS NULL OR loc.province LIKE %:province%) " +
+            "ORDER BY b.postDate DESC")
+    Page<Board> findSearchBoards(
+            @Param("breedName") String breedName,
+            @Param("province") String province,
+            Pageable pageable);
+
+    @Query("SELECT b FROM Board b " +
+            "WHERE b.report != 2 " +
+            "ORDER BY b.postDate DESC")
+    Page<Board> findBoards(Pageable pageable);
 
     @Query("SELECT b FROM Board b WHERE b.report != 2 AND b.user.userSeq = :userSeq order by b.postDate desc ")
     Page<Board> findByUserSeqAndReportNot(@Param("userSeq") int userSeq, Pageable pageable);

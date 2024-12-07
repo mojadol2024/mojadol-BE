@@ -306,20 +306,20 @@ public class AuthController {
     }
 
     @PostMapping("/mailCheck")
-    public ResponseEntity<?> mailCheck(@RequestBody UserRequestDto userRequestDto, @RequestBody String code){
+    public ResponseEntity<?> mailCheck(@RequestBody UserRequestDto userRequestDto){
         System.out.println("AuthController mailCheck" + new Date());
         try {
             String redisCode = tokenService.getToken(userRequestDto.getUserId() + userRequestDto.getMail());
-            if (code.equals(redisCode)) {
-
-                tokenService.deleteToken(userRequestDto.getUserId() + userRequestDto.getMail());
-
+            System.out.println(redisCode);
+            System.out.println(userRequestDto.getCode());
+            if (userRequestDto.getCode().equals(redisCode)) {
                 return ResponseEntity.ok("YES");
             }
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("코드가 잘못되었습니다.");
 
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("잘못된 요청 입니다.");
         }
     }
