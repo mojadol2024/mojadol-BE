@@ -39,18 +39,6 @@ public class CommentController {
         return ResponseEntity.ok(commentResponseDto);
     }
 
-    // 특정 게시글의 댓글 조회 이거는 여기서 작업 안하고 board 작업할게요
-    /*
-    @GetMapping("/board/{boardSeq}")
-    public ResponseEntity<List<CommentResponseDto>> getComments(@PathVariable int boardSeq) {
-        System.out.println("CommentController getCommentsByBoardSeq " + new Date());
-
-        List<CommentResponseDto> comments = commentService.getCommentsByBoardSeq(boardSeq);
-        return ResponseEntity.ok(comments);
-    }
-<<<<<<< HEAD
-    */
-
     // 댓글 수정
     @PostMapping("/edit")
     public ResponseEntity<CommentResponseDto> update(@RequestBody CommentRequestDto commentRequestDto,

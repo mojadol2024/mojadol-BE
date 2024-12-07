@@ -11,7 +11,7 @@ import java.util.List;
 public interface BoardService {
     BoardResponseDto writeBoard(BoardRequestDto boardRequestDto);
 
-    Page<Board> listBoard(int page, int size, String title, String dogName, String location);
+    Page<Board> listBoard(int page, int size, String title, String  province);
 
     BoardResponseDto updateBoard(BoardRequestDto boardRequestDto);
 

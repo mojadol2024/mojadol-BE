@@ -8,12 +8,10 @@ import com.gnu.mojadol.entity.User;
 import com.gnu.mojadol.repository.BoardRepository;
 import com.gnu.mojadol.repository.PhotoRepository;
 import com.gnu.mojadol.repository.UserRepository;
-import com.gnu.mojadol.service.BoardService;
-import com.gnu.mojadol.service.CommentService;
-import com.gnu.mojadol.service.FCMService;
-import com.gnu.mojadol.service.PhotoService;
+import com.gnu.mojadol.service.*;
 import com.gnu.mojadol.service.impl.FCMServiceImpl;
 import com.gnu.mojadol.utils.JwtUtil;
+import com.google.api.Http;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
@@ -58,15 +56,18 @@ public class BoardController {
     @Autowired
     private PhotoService photoService;
 
+    @Autowired
+    private AiService aiService;
+
     // Board 해야할 api 정리
     // Board main페이지 게시글 뿌려주기 10개 씩 페이징해서
     @GetMapping("/list")
     public ResponseEntity<?> listBoard(@RequestParam(defaultValue = "0") int page,
-                                @RequestParam(defaultValue = "10") int size, @RequestParam(required = false) String breedName,
-                                       @RequestParam(required = false) String dogName, @RequestParam(required = false) String location) {
+                                @RequestParam(defaultValue = "10") int size, @RequestParam(value = "breedName",required = false) String breedName,
+                                       @RequestParam(value = "province", required = false) String province) {
         System.out.println("BoardController listBoard " + new Date());
 
-        Page<Board> response = boardService.listBoard(page, size, breedName, dogName, location);
+        Page<Board> response = boardService.listBoard(page, size, breedName, province);
 
         List<Map<String, Object>> responseMap = new ArrayList<>();
 
@@ -246,5 +247,21 @@ public class BoardController {
         String response = boardService.delete(boardRequestDto);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/model")
+    public ResponseEntity<?> model(@RequestHeader("Authorization") String accessToken, @RequestParam(value = "file") List<MultipartFile> files) {
+        try {
+
+
+            // AI 서비스 호출
+            String response = aiService.getPrediction(files);
+
+            // 예측 결과를 반환
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("NO");
+        }
     }
 }
