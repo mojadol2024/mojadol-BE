@@ -258,7 +258,21 @@ public class AuthController {
                 int max = 999999;
                 String verificationCode = String.valueOf(random.nextInt(max - min + 1) + min);
 
+                boolean isSaved = tokenService.saveToken(user.getUserId() + user.getMail(), verificationCode, 5, TimeUnit.MINUTES);
+                if (isSaved) {
+                    System.out.println("Redis에 데이터가 성공적으로 저장되었습니다.");
+                } else {
+                    System.out.println("Redis 데이터 저장 실패.");
+                }
+
                 tokenService.saveToken(user.getUserId() + user.getMail(), verificationCode, 5, TimeUnit.MINUTES);
+                System.out.println("Redis에 저장된 키: " + user.getUserId() + user.getMail() + ", 인증 코드: " + verificationCode);
+                String savedValue = tokenService.getToken(user.getUserId() + user.getMail());
+                System.out.println("Redis에 저장된 인증 코드: " + savedValue);
+
+
+                Long ttl = redisTemplate.getExpire(user.getUserId() + user.getMail());
+                System.out.println("Redis에 저장된 키 TTL: " + ttl);
 
                 String message = "";
 
@@ -292,7 +306,7 @@ public class AuthController {
                 message += "</html>";
 
                 MailDto mailDto = new MailDto();
-                mailDto.setTitle("추견 60분 " + user.getUsername() + "님 아이디 찾기");
+                mailDto.setTitle("추견 60분 " + user.getUsername() + "님 비밀번호 찾기");
                 mailDto.setAddress(user.getMail());
                 mailDto.setMessage(message);
                 mailService.mailSend(mailDto);
@@ -306,13 +320,18 @@ public class AuthController {
     }
 
     @PostMapping("/mailCheck")
-    public ResponseEntity<?> mailCheck(@RequestBody UserRequestDto userRequestDto, @RequestBody String code){
+    public ResponseEntity<?> mailCheck(@RequestBody UserRequestDto userRequestDto){
         System.out.println("AuthController mailCheck" + new Date());
+
+        System.out.println("userId: " + userRequestDto.getUserId());
+        System.out.println("mail: " + userRequestDto.getMail());
+        System.out.println("code: " + userRequestDto.getCode());
+
+
         try {
             String redisCode = tokenService.getToken(userRequestDto.getUserId() + userRequestDto.getMail());
-            if (code.equals(redisCode)) {
-
-                tokenService.deleteToken(userRequestDto.getUserId() + userRequestDto.getMail());
+            if (userRequestDto.getCode().equals(redisCode)) {
+                System.out.println("Redis에서 가져온 코드: " + redisCode);
 
                 return ResponseEntity.ok("YES");
             }

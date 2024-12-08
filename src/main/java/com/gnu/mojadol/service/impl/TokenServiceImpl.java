@@ -18,8 +18,9 @@ public class TokenServiceImpl implements TokenService {
     private JwtUtil jwtUtil;
 
     @Override
-    public void saveToken(String key, String token, long duration, TimeUnit unit) {
+    public boolean saveToken(String key, String token, long duration, TimeUnit unit) {
         redisTemplate.opsForValue().set(key, token, duration, unit);
+        return false;
     }
     @Override
     public String getToken(String key) {

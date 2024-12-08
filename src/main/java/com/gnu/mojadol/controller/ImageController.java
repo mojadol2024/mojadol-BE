@@ -13,7 +13,7 @@ import java.nio.file.Paths;
 public class ImageController {
 
     // 파일이 저장된 경로를 지정
-    private final Path rootLocation = Paths.get("/Users/byeongyeongtae/uploads");
+    private final Path rootLocation = Paths.get("C:\\Users\\lovee\\uploads\\");
 
     // /images/uploads/ 경로로 이미지를 제공
     @GetMapping("/images/uploads/{filename}")
