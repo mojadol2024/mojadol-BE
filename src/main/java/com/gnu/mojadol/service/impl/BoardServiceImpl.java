@@ -69,6 +69,7 @@ public class BoardServiceImpl implements BoardService {
 
         Board board = setBoard(boardRequestDto);
         board.setPostDate(dateString);
+        board.setReport(boardRequestDto.getReport());
         board.setBreed(breed);
         board.setUser(user);
         board.setLocation(newLocation);
