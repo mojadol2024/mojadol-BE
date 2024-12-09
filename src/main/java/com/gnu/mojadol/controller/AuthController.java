@@ -258,7 +258,21 @@ public class AuthController {
                 int max = 999999;
                 String verificationCode = String.valueOf(random.nextInt(max - min + 1) + min);
 
+                boolean isSaved = tokenService.saveToken(user.getUserId() + user.getMail(), verificationCode, 5, TimeUnit.MINUTES);
+                if (isSaved) {
+                    System.out.println("Redis에 데이터가 성공적으로 저장되었습니다.");
+                } else {
+                    System.out.println("Redis 데이터 저장 실패.");
+                }
+
                 tokenService.saveToken(user.getUserId() + user.getMail(), verificationCode, 5, TimeUnit.MINUTES);
+                System.out.println("Redis에 저장된 키: " + user.getUserId() + user.getMail() + ", 인증 코드: " + verificationCode);
+                String savedValue = tokenService.getToken(user.getUserId() + user.getMail());
+                System.out.println("Redis에 저장된 인증 코드: " + savedValue);
+
+
+                Long ttl = redisTemplate.getExpire(user.getUserId() + user.getMail());
+                System.out.println("Redis에 저장된 키 TTL: " + ttl);
 
                 String message = "";
 
