@@ -78,36 +78,14 @@ public class BoardServiceImpl implements BoardService {
         return setBoardResponseDto(savedBoard);
     }
     // 견종 or 개이름 까지는 완성  위치 검색을 논의 해봐야 할듯 어떻게 값이 들어오게 할건지 의논해야함
-    public Page<Board> listBoard(int page, int size, String breedName, String dogName, String location) {
+    public Page<Board> listBoard(int page, int size, String breedName, String province) {
         Pageable pageable = PageRequest.of(page, size);
 
-        // 조건을 설정하는 Specification 생성
-        Specification<Board> spec = Specification.where((root, query, criteriaBuilder) ->
-                criteriaBuilder.notEqual(root.get("report"), 2));
-
-        if (breedName != null && !breedName.isEmpty()) {
-            spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.like(root.get("breedName"), "%" + breedName + "%"));
+        if ((breedName == null || breedName.isEmpty()) && (province == null || province.isEmpty())) {
+            return boardRepository.findBoards(pageable);
         }
 
-        if (dogName != null && !dogName.isEmpty()) {
-            spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.like(root.get("dogName"), "%" + dogName + "%"));
-        }
-
-        if (location != null && !location.isEmpty()) {
-            spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.like(root.get("location"), "%" + location + "%"));
-        }
-
-        spec = spec.and((root, query, criteriaBuilder) -> {
-            Join<Object, Object> photos = root.join("photo", JoinType.LEFT);
-            return criteriaBuilder.equal(photos.get("deletedFlag"), 0);
-        });
-
-        Page<Board> boards = boardRepository.findBoards(spec, pageable);
-
-        return boards;
+        return boardRepository.findSearchBoards(breedName, province, pageable);
     }
 
     public BoardResponseDto updateBoard(BoardRequestDto boardRequestDto) {
