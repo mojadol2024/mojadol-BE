@@ -66,7 +66,8 @@ public class BoardController {
                                 @RequestParam(defaultValue = "10") int size, @RequestParam(value = "breedName",required = false) String breedName,
                                        @RequestParam(value = "province", required = false) String province) {
         System.out.println("BoardController listBoard " + new Date());
-
+        System.out.println(province);
+        System.out.println(breedName);
         Page<Board> response = boardService.listBoard(page, size, breedName, province);
 
         List<Map<String, Object>> responseMap = new ArrayList<>();
@@ -86,7 +87,7 @@ public class BoardController {
             boardMap.put("breedName", board.getBreed().getBreedName());
             boardMap.put("location", board.getLocation().getProvince() + " " + board.getLocation().getCity());
             boardMap.put("photo", "http://10.0.2.2:3000/images/uploads/" + board.getPhoto().get(0).getFilePath());
-
+            boardMap.put("report", board.getReport());
             responseMap.add(boardMap);
         }
 
