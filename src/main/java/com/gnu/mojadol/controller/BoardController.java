@@ -85,7 +85,7 @@ public class BoardController {
             boardMap.put("memo", board.getMemo());
             boardMap.put("breedName", board.getBreed().getBreedName());
             boardMap.put("location", board.getLocation().getProvince() + " " + board.getLocation().getCity());
-            boardMap.put("photo", "http://10.0.2.2:3000/images/uploads/" + board.getPhoto().get(0).getFilePath());
+            boardMap.put("photo", "http://10.0.2.2:3000/images/uploads\\" + board.getPhoto().get(0).getFilePath());
 
             responseMap.add(boardMap);
         }
@@ -121,7 +121,7 @@ public class BoardController {
             boardRequestDto.setUserSeq(user.getUserSeq());
             BoardResponseDto boardResponseDto = boardService.writeBoard(boardRequestDto);
 
-            String directoryPath = "/Users/byeongyeongtae/uploads/";
+            String directoryPath = "C:\\Users\\lovee\\uploads\\";
             File directory = new File(directoryPath);
             if (!directory.exists()) {
                 boolean created = directory.mkdirs();  // 디렉토리 생성 시 오류가 발생할 수 있음

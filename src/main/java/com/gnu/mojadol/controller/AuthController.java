@@ -258,8 +258,6 @@ public class AuthController {
                 int max = 999999;
                 String verificationCode = String.valueOf(random.nextInt(max - min + 1) + min);
 
-                tokenService.saveToken(user.getUserId() + user.getMail(), verificationCode, 5, TimeUnit.MINUTES);
-
                 String message = "";
 
                 message += "<!DOCTYPE html>";
@@ -292,7 +290,7 @@ public class AuthController {
                 message += "</html>";
 
                 MailDto mailDto = new MailDto();
-                mailDto.setTitle("추견 60분 " + user.getUsername() + "님 아이디 찾기");
+                mailDto.setTitle("추견 60분 " + user.getUsername() + "님 비밀번호 찾기");
                 mailDto.setAddress(user.getMail());
                 mailDto.setMessage(message);
                 mailService.mailSend(mailDto);
@@ -308,11 +306,12 @@ public class AuthController {
     @PostMapping("/mailCheck")
     public ResponseEntity<?> mailCheck(@RequestBody UserRequestDto userRequestDto){
         System.out.println("AuthController mailCheck" + new Date());
+
         try {
             String redisCode = tokenService.getToken(userRequestDto.getUserId() + userRequestDto.getMail());
-            System.out.println(redisCode);
-            System.out.println(userRequestDto.getCode());
             if (userRequestDto.getCode().equals(redisCode)) {
+                System.out.println("Redis에서 가져온 코드: " + redisCode);
+
                 return ResponseEntity.ok("YES");
             }
 
