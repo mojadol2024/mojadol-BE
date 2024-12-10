@@ -30,6 +30,7 @@ public class PhotoServiceImpl implements PhotoService {
 
     @Override
     public PhotoResponseDto savePhoto(PhotoRequestDto photoRequestDto) {
+        System.out.println("PhotoServiceImpl savePhoto" + new Date());
         Board board = boardRepository.findById(photoRequestDto.getBoardSeq())
                 .orElseThrow(() -> new RuntimeException("Board not found"));
 
@@ -81,6 +82,7 @@ public class PhotoServiceImpl implements PhotoService {
 
     @Transactional
     public void deletePhoto(int boardSeq) {
-        photoRepository.deleteFlagUpdate(boardSeq);
+        System.out.println("PhotoServiceImpl deletePhoto" + new Date());
+        photoRepository.deleteByBoardBoardSeq(boardSeq);
     }
 }

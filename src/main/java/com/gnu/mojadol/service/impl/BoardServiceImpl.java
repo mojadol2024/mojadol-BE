@@ -9,6 +9,7 @@ import com.gnu.mojadol.service.BoardService;
 import com.gnu.mojadol.service.PhotoService;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
+import jakarta.transaction.Transactional;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
+@Transactional
 public class BoardServiceImpl implements BoardService {
 
     @Autowired
@@ -52,31 +54,40 @@ public class BoardServiceImpl implements BoardService {
                 throw new IllegalArgumentException("사용자를 찾을 수 없습니다."); // 예외 처리
             }
         }
+        try {
+            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyyMMdd");
+            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date lostDate = inputFormat.parse(boardRequestDto.getLostDate());
+            String formattedDate = outputFormat.format(lostDate);
+            boardRequestDto.setLostDate(formattedDate);
 
-        Date date = new Date();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-        String dateString = dateFormat.format(date);
+            Date date = new Date();
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String dateString = dateFormat.format(date);
+            Breed breed = breedRepository.findById(boardRequestDto.getBreedName())
+                    .orElseThrow(() -> new IllegalArgumentException("Breed가 없습니다"));
 
-        Breed breed = breedRepository.findById(boardRequestDto.getBreedName())
-                .orElseThrow(() -> new IllegalArgumentException("Breed가 없습니다"));
+            Location newLocation = new Location();
+            newLocation.setProvince(boardRequestDto.getProvince());
+            newLocation.setCity(boardRequestDto.getCity());
+            newLocation.setDistrict(boardRequestDto.getDistrict());
+            locationRepository.save(newLocation);
 
-        Location newLocation = new Location();
-        newLocation.setProvince(boardRequestDto.getProvince());
-        newLocation.setCity(boardRequestDto.getCity());
-        newLocation.setDistrict(boardRequestDto.getDistrict());
-        locationRepository.save(newLocation);
+            Board board = setBoard(boardRequestDto);
+            board.setPostDate(dateString);
+            board.setReport(boardRequestDto.getReport());
+            board.setBreed(breed);
+            board.setUser(user);
+            board.setLocation(newLocation);
 
-        Board board = setBoard(boardRequestDto);
-        board.setPostDate(dateString);
-        board.setReport(boardRequestDto.getReport());
-        board.setBreed(breed);
-        board.setUser(user);
-        board.setLocation(newLocation);
+            Board savedBoard = boardRepository.save(board);
 
-        Board savedBoard = boardRepository.save(board);
-
-        return setBoardResponseDto(savedBoard);
+            return setBoardResponseDto(savedBoard);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new IllegalArgumentException("유효하지 않는 요청입니다.");
+        }
     }
     // 견종 or 개이름 까지는 완성  위치 검색을 논의 해봐야 할듯 어떻게 값이 들어오게 할건지 의논해야함
     public Page<Board> listBoard(int page, int size, String breedName, String province) {
@@ -90,26 +101,21 @@ public class BoardServiceImpl implements BoardService {
     }
 
     public BoardResponseDto updateBoard(BoardRequestDto boardRequestDto) {
+        System.out.println("BoardServiceImpl updateBoard " + new Date());
         if (boardRequestDto != null) {
             Board board = boardRepository.findById(boardRequestDto.getBoardSeq())
                     .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
             User user = userRepository.findByUserSeq(boardRequestDto.getUserSeq());
-            Location location = locationRepository.findById(board.getLocation().getLocationSeq())
-                    .orElseThrow(() -> new IllegalArgumentException("위치 정보가 존재하지 않습니다."));
+            Breed breed = breedRepository.findByBreedName(boardRequestDto.getBreedName());
 
             Date date = new Date();
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
             String dateString = dateFormat.format(date);
 
-            location.setProvince(boardRequestDto.getProvince());
-            location.setCity(boardRequestDto.getCity());
-            location.setDistrict(boardRequestDto.getDistrict());
-
-            locationRepository.save(location);
-
             board.setDogName(boardRequestDto.getDogName());
+            board.setBreed(breed);
             board.setDogAge(boardRequestDto.getDogAge());
             board.setDogGender(boardRequestDto.getDogGender());
             board.setDogWeight(boardRequestDto.getDogWeight());

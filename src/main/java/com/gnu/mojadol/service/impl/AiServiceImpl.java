@@ -20,7 +20,7 @@ public class AiServiceImpl implements AiService {
 
     public String getPrediction(List<MultipartFile> files) {
         RestTemplate restTemplate = new RestTemplate();
-        String url = "http://localhost:5001/prediction";
+        String url = "http://localhost:5001/predict";
 
         try {
             // Multipart 형식의 데이터를 생성

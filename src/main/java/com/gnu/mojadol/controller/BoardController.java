@@ -120,6 +120,12 @@ public class BoardController {
             String userId = jwtUtil.extractUsername(accessToken);
             User user = userRepository.findByUserId(userId);
             boardRequestDto.setUserSeq(user.getUserSeq());
+            if (boardRequestDto.getReport() == 1) {
+                boardRequestDto.setDogAge("정보 없음");
+                boardRequestDto.setDogGender(2);
+                boardRequestDto.setDogWeight("정보 없음");
+                boardRequestDto.setDogName("정보 없음");
+            }
             BoardResponseDto boardResponseDto = boardService.writeBoard(boardRequestDto);
 
             String directoryPath = "/Users/byeongyeongtae/uploads/";
@@ -162,6 +168,7 @@ public class BoardController {
             return ResponseEntity.ok("YES");
 
         } catch (IOException e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("File upload failed: " + e.getMessage());
         }
@@ -211,6 +218,7 @@ public class BoardController {
 
             return ResponseEntity.ok("YES");
         } catch (IOException e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("File upload failed: " + e.getMessage());
         }
@@ -253,8 +261,6 @@ public class BoardController {
     @PostMapping("/model")
     public ResponseEntity<?> model(@RequestHeader("Authorization") String accessToken, @RequestParam(value = "file") List<MultipartFile> files) {
         try {
-
-
             // AI 서비스 호출
             String response = aiService.getPrediction(files);
 
@@ -262,7 +268,7 @@ public class BoardController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("NO");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("NO");
         }
     }
 }
